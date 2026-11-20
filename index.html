@@ -249,6 +249,54 @@ body {
     transform: translate(-50%, -6px) scale(1);
 }
 
+/* Secret button tucked subtly in portrait corner */
+.secret-btn {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 6;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(6, 13, 24, 0.54);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(242, 211, 43, 0.24);
+    opacity: 0.78;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.secret-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+    background: rgba(8, 16, 30, 0.82);
+    border-color: rgba(242, 211, 43, 0.56);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38), 0 0 18px rgba(242, 211, 43, 0.16);
+}
+
+.secret-btn:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.secret-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(242, 211, 43, 0.85);
+}
+
 /* Content column */
 .content {
     display: flex;
@@ -581,6 +629,11 @@ footer {
     .portrait-stage:hover {
         box-shadow: none;
     }
+
+    .secret-btn {
+        top: max(14px, env(safe-area-inset-top));
+        left: 14px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -601,6 +654,10 @@ footer {
     <div class="portrait-stage fade-up">
         <img class="portrait-img" src="images/background.webp" alt="KIGGS" width="2048" height="2048" fetchpriority="high" decoding="async">
         <div class="portrait-vignette" aria-hidden="true"></div>
+        <a href="secret.html" class="secret-btn" aria-label="Tajné tlačítko">
+            <span class="secret-dot" aria-hidden="true"></span>
+            <span>Secret button ↗</span>
+        </a>
         <div class="boop-ripple" id="boop-ripple" aria-hidden="true"></div>
         <button class="boop-trigger" id="boop-trigger" type="button" aria-label="Boop"></button>
         <div class="boop-toast" id="boop-toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -702,6 +759,7 @@ const boopToast = document.getElementById("boop-toast");
 const boopRipple = document.getElementById("boop-ripple");
 const boopMessages = ["Boop!", "Boop!", "Woof!", "Boop! 🐾"];
 let boopCount = 0;
+try { boopCount = Number(localStorage.getItem("kiggs_boops") || 0); } catch {}
 let boopTimer;
 
 boopTrigger.addEventListener("click", () => {
@@ -714,6 +772,7 @@ boopTrigger.addEventListener("click", () => {
 
     const msg = boopMessages[boopCount % boopMessages.length];
     boopCount += 1;
+    try { localStorage.setItem("kiggs_boops", String(boopCount)); } catch {}
 
     window.requestAnimationFrame(() => {
         void boopRipple.offsetWidth;
