@@ -1,4 +1,4 @@
-const CACHE_NAME = "kiggs-shell-v1";
+const CACHE_NAME = "kiggs-shell-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {

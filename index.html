@@ -5,9 +5,11 @@
 
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="manifest" href="/manifest.webmanifest?v=2">
 <meta name="theme-color" content="#0b1623">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="KIGGS">
 
 <meta name="description" content="Woof. Woof.">
@@ -32,7 +34,9 @@
 <meta name="twitter:image" content="https://kiggs.cz/images/og-image.png">
 <meta name="twitter:image:alt" content="KIGGS — Woof. Woof.">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&amp;display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 
 <style>
 * {
@@ -93,6 +97,7 @@ h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
 
 .link-btn {
     position: relative;
+    z-index: 6;
     width: 100%;
     max-width: 420px;
     padding: 15px;
@@ -104,6 +109,11 @@ h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
     color: #ffffff;
     transition: transform 0.3s ease, box-shadow 0.3s ease, letter-spacing 0.3s ease;
     box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+}
+
+.link-btn:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 4px;
 }
 
 .link-icon {
@@ -125,7 +135,7 @@ h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
 .instagram { background: linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5); }
 .telegram { background: linear-gradient(45deg, #006fae 0%, #48c8ff 100%); }
 .jsempes { background: linear-gradient(45deg, #4b2b1b 0%, #754b2c 52%, #a66c34 100%); color: #ffffff; font-weight: 600; }
-.pobar { background: linear-gradient(45deg, #555b62 0%, #888d94 18%, #d1af00 42%, #f2d32b 66%, #767b82 100%); color: #ffffff; font-weight: 500; }
+.pobar { background: linear-gradient(45deg, #555b62 0%, #888d94 18%, #d1af00 42%, #f2d32b 66%, #767b82 100%); color: #ffffff; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
 
 .boop-trigger {
     position: fixed;
@@ -163,7 +173,7 @@ h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
     transform: translate(-50%, -8px);
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
     pointer-events: none;
-    z-index: 6;
+    z-index: 10;
 }
 
 .boop-toast.is-visible {
@@ -187,6 +197,12 @@ footer { text-align: center; padding: 40px 20px; font-size: 0.8rem; opacity: 0.4
     .links-section { margin-top: 0; padding: 20px 20px 60px; gap: 14px; }
     .boop-trigger { position: absolute; top: 54%; }
     .boop-toast { top: calc(22.7vh - 42px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fade-up { opacity: 1; animation: none; }
+    .breathe { animation: none; }
+    .link-btn, .boop-toast { transition: none; }
 }
 </style>
 </head>
