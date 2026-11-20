@@ -1,12 +1,14 @@
-<!DOCTYPE html><html lang="cs"><head>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KIGGS</title>
 
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest?v=2">
-<meta name="theme-color" content="#0b1623">
+<meta name="theme-color" content="#060d18">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -36,113 +38,153 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
 
 <style>
+:root {
+    --bg: #060d18;
+    --bg-elevated: rgba(14, 24, 42, 0.62);
+    --border-subtle: rgba(255, 255, 255, 0.09);
+    --border-hover: rgba(255, 255, 255, 0.22);
+    --text-primary: #f5f7fb;
+    --text-secondary: rgba(226, 232, 240, 0.64);
+    --accent: #f2d32b;
+    --accent-soft: rgba(242, 211, 43, 0.16);
+    --radius-card: 18px;
+    --radius-portrait: 28px;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    color-scheme: dark;
+    background-color: var(--bg);
+}
+
 body {
-    font-family: 'Inter', sans-serif;
-    color: #ffffff;
+    min-height: 100dvh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg);
     overflow-x: hidden;
-    background: linear-gradient(rgba(5,10,18,0.75), rgba(5,10,18,0.75)),
-                url('images/background.webp') center / cover no-repeat fixed;
-    background-color: #0b1623;
-}
-
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes organicBreathe {
-    0% { letter-spacing: 3px; opacity: 0.9; }
-    50% { letter-spacing: 4px; opacity: 1; }
-    100% { letter-spacing: 3px; opacity: 0.9; }
-}
-
-.fade-up { opacity: 0; animation: fadeUp 1.2s ease forwards; }
-.delay-1 { animation-delay: 0.3s; }
-.delay-2 { animation-delay: 0.6s; }
-.delay-3 { animation-delay: 0.9s; }
-.delay-4 { animation-delay: 1.2s; }
-
-.breathe { display: inline-block; animation: organicBreathe 5.5s ease-in-out infinite; }
-
-.hero {
-    height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-}
-
-h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
-
-.slogan { margin-top: 15px; font-size: 1rem; font-weight: 400; }
-
-.links-section {
-    margin-top: -30px;
-    padding: 30px 20px 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-}
-
-.link-btn {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
     position: relative;
-    z-index: 6;
-    width: 100%;
-    max-width: 420px;
-    padding: 15px;
-    border-radius: 14px;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: 500;
-    text-decoration: none;
-    color: #ffffff;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, letter-spacing 0.3s ease;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
 }
 
-.link-btn:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 4px;
-}
-
-.link-icon {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    width: 18px;
-    height: 18px;
-    transform: translateY(-50%);
-}
-
-
-.link-btn:hover {
-    transform: translateY(-5px) scale(1.03);
-    box-shadow: 0 20px 45px rgba(0,0,0,0.5);
-    letter-spacing: 0.5px;
-}
-
-.instagram { background: linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5); }
-.telegram { background: linear-gradient(45deg, #006fae 0%, #48c8ff 100%); }
-.jsempes { background: linear-gradient(45deg, #4b2b1b 0%, #754b2c 52%, #a66c34 100%); color: #ffffff; font-weight: 600; }
-.pobar { background: linear-gradient(45deg, #555b62 0%, #888d94 18%, #d1af00 42%, #f2d32b 66%, #767b82 100%); color: #ffffff; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
-
-.boop-trigger {
+/* Ambient nocturnal backdrop */
+.ambient {
     position: fixed;
-    top: 55vh;
-    left: 50%;
-    width: 100px;
-    height: 80px;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.ambient::before,
+.ambient::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.45;
+}
+
+.ambient::before {
+    width: min(62vw, 640px);
+    height: min(62vw, 640px);
+    top: -18%;
+    left: -12%;
+    background: radial-gradient(circle, rgba(22, 58, 138, 0.85) 0%, rgba(11, 22, 48, 0) 72%);
+}
+
+.ambient::after {
+    width: min(52vw, 520px);
+    height: min(52vw, 520px);
+    bottom: -22%;
+    right: -10%;
+    background: radial-gradient(circle, rgba(242, 211, 43, 0.20) 0%, rgba(15, 36, 74, 0.35) 45%, rgba(6, 13, 24, 0) 75%);
+}
+
+/* Subtle film grain to prevent gradient banding */
+.grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Main layout */
+.page {
+    position: relative;
+    z-index: 2;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 56px) clamp(20px, 4vw, 40px);
+    display: grid;
+    grid-template-columns: minmax(290px, 410px) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 68px);
+}
+
+/* Portrait stage */
+.portrait-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-portrait);
+    overflow: hidden;
+    background: #071024;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.58),
+        0 0 0 1px rgba(242, 211, 43, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    isolation: isolate;
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.55s ease;
+}
+
+.portrait-stage:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 38px 85px rgba(0, 0, 0, 0.65),
+        0 0 42px rgba(242, 211, 43, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.portrait-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.portrait-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 46% 45%, transparent 52%, rgba(6, 13, 24, 0.42) 100%),
+        linear-gradient(to top, rgba(6, 13, 24, 0.45) 0%, transparent 28%);
+}
+
+/* Pixel-accurate nose boop hotspot locked to portrait coordinates */
+.boop-trigger {
+    position: absolute;
+    left: 45%;
+    top: 59.5%;
+    width: 24%;
+    height: 20%;
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -150,108 +192,552 @@ h1 { font-size: 3rem; letter-spacing: 6px; font-weight: 600; }
     transform: translate(-50%, -50%);
     cursor: pointer;
     z-index: 5;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .boop-trigger:focus-visible {
-    outline: 2px solid #ffffff;
+    outline: 2px solid var(--accent);
     outline-offset: 4px;
 }
 
+.boop-ripple {
+    position: absolute;
+    left: 45%;
+    top: 59.5%;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid rgba(242, 211, 43, 0.85);
+    box-shadow: 0 0 18px rgba(242, 211, 43, 0.45);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.boop-ripple.is-active {
+    animation: boopPulse 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .boop-toast {
-    position: fixed;
-    left: 50%;
-    top: calc(55vh - 50px);
-    padding: 9px 15px;
+    position: absolute;
+    left: 45%;
+    top: 42%;
+    padding: 8px 16px;
     border-radius: 999px;
-    background: rgba(11,22,35,0.94);
-    color: #ffffff;
-    font-size: 0.9rem;
+    background: rgba(8, 15, 28, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(242, 211, 43, 0.38);
+    color: var(--text-primary);
+    font-size: 0.88rem;
     font-weight: 600;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
     opacity: 0;
     visibility: hidden;
-    transform: translate(-50%, -8px);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    transform: translate(-50%, 6px) scale(0.92);
+    transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.22s;
     pointer-events: none;
-    z-index: 10;
+    z-index: 6;
 }
 
 .boop-toast.is-visible {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -6px) scale(1);
 }
 
-footer { text-align: center; padding: 40px 20px; font-size: 0.8rem; opacity: 0.4; }
+/* Content column */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
 
-@media (max-width: 768px) {
-    body { background: #0b1623; }
-    .mobile-banner {
-        position: relative;
-        height: 42vh;
-        background: linear-gradient(rgba(5,10,18,0.6), rgba(5,10,18,0.6)),
-                    url('images/background.webp') center / cover no-repeat;
+.identity {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: clamp(2.6rem, 5vw, 3.6rem);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    background: linear-gradient(180deg, #ffffff 15%, #cfd8e8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.slogan-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.slogan-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(242, 211, 43, 0.75);
+    flex-shrink: 0;
+}
+
+.breathe {
+    display: inline-block;
+    animation: organicBreathe 5.5s ease-in-out infinite;
+}
+
+/* Links stack */
+.links-section {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+.link-btn {
+    --glow: rgba(242, 211, 43, 0.25);
+    --accent-border: rgba(255, 255, 255, 0.24);
+    --mx: 50%;
+    --my: 50%;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 13px 18px 13px 14px;
+    border-radius: var(--radius-card);
+    text-decoration: none;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid var(--border-subtle);
+    box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    transition:
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.3s ease,
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Cursor spotlight overlay */
+.link-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(240px circle at var(--mx) var(--my), var(--glow), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.32s ease;
+    pointer-events: none;
+}
+
+.link-btn:hover {
+    transform: translateY(-3px);
+    background: rgba(18, 30, 52, 0.78);
+    border-color: var(--accent-border);
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.42),
+        0 0 24px -6px var(--glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.link-btn:hover::before {
+    opacity: 1;
+}
+
+.link-btn:active {
+    transform: translateY(-1px) scale(0.985);
+}
+
+.link-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+/* Platform badge */
+.icon-badge {
+    position: relative;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #ffffff;
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-btn:hover .icon-badge {
+    transform: scale(1.06);
+}
+
+.link-icon {
+    width: 21px;
+    height: 21px;
+    display: block;
+}
+
+.link-meta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.link-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text-primary);
+}
+
+.link-sub {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.link-arrow {
+    position: relative;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    color: rgba(255, 255, 255, 0.38);
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease;
+}
+
+.link-btn:hover .link-arrow {
+    transform: translate(3px, -3px);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* Platform color signatures */
+.instagram {
+    --glow: rgba(214, 41, 118, 0.24);
+    --accent-border: rgba(250, 126, 30, 0.42);
+}
+.instagram .icon-badge {
+    background: linear-gradient(135deg, #feda75 0%, #fa7e1e 28%, #d62976 62%, #962fbf 85%, #4f5bd5 100%);
+}
+
+.telegram {
+    --glow: rgba(56, 189, 248, 0.24);
+    --accent-border: rgba(72, 200, 255, 0.44);
+}
+.telegram .icon-badge {
+    background: linear-gradient(135deg, #0077b6 0%, #38c6ff 100%);
+}
+
+.jsempes {
+    --glow: rgba(180, 118, 58, 0.26);
+    --accent-border: rgba(196, 134, 72, 0.46);
+}
+.jsempes .icon-badge {
+    background: linear-gradient(135deg, #52301e 0%, #8a5730 55%, #b8783a 100%);
+}
+
+.pobar {
+    --glow: rgba(242, 211, 43, 0.24);
+    --accent-border: rgba(242, 211, 43, 0.46);
+}
+.pobar .icon-badge {
+    background: linear-gradient(135deg, #555b62 0%, #9b8c2a 40%, #f2d32b 100%);
+    color: #101620;
+}
+
+footer {
+    margin-top: 4px;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: rgba(226, 232, 240, 0.34);
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
     }
-    .hero { height: auto; padding: 20px 20px 10px; }
-    h1 { font-size: 2.2rem; }
-    .links-section { margin-top: 0; padding: 20px 20px 60px; gap: 14px; }
-    .boop-trigger { position: absolute; top: 54%; }
-    .boop-toast { top: calc(22.7vh - 42px); }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes organicBreathe {
+    0%, 100% { letter-spacing: 0.14em; opacity: 0.76; }
+    50% { letter-spacing: 0.20em; opacity: 1; }
+}
+
+@keyframes boopPulse {
+    0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(0.45);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.8);
+    }
+}
+
+.fade-up {
+    opacity: 0;
+    animation: fadeUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+.delay-5 { animation-delay: 0.40s; }
+
+/* Mobile & Tablet layout */
+@media (max-width: 860px) {
+    .page {
+        grid-template-columns: 1fr;
+        max-width: 460px;
+        padding: 28px 0 max(36px, env(safe-area-inset-bottom));
+        gap: 0;
+        align-content: start;
+    }
+
+    .portrait-stage:hover {
+        transform: none;
+        box-shadow:
+            0 30px 70px rgba(0, 0, 0, 0.58),
+            0 0 0 1px rgba(242, 211, 43, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    }
+
+    .portrait-vignette {
+        background:
+            radial-gradient(circle at 46% 42%, transparent 45%, rgba(6, 13, 24, 0.42) 100%),
+            linear-gradient(to top, var(--bg) 0%, rgba(6, 13, 24, 0.72) 18%, transparent 44%);
+    }
+
+    .content {
+        position: relative;
+        z-index: 3;
+        margin-top: -54px;
+        padding: 0 20px;
+        gap: 24px;
+    }
+
+    .identity {
+        align-items: center;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.55rem;
+    }
+
+    .links-section {
+        gap: 12px;
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 500px) {
+    .page {
+        padding-top: 0;
+    }
+
+    .portrait-stage {
+        border-radius: 0;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .portrait-stage:hover {
+        box-shadow: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .fade-up { opacity: 1; animation: none; }
     .breathe { animation: none; }
-    .link-btn, .boop-toast { transition: none; }
+    .portrait-stage, .link-btn, .link-btn::before, .icon-badge, .link-arrow, .boop-toast { transition: none; }
+    .boop-ripple.is-active { animation: none; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="mobile-banner"><button class="boop-trigger" id="boop-trigger" type="button" aria-label="Boop"></button></div>
-<div class="boop-toast" id="boop-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="ambient" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 
-<div class="hero">
-    <div>
-        <h1 class="fade-up">KIGGS</h1>
-        <div class="slogan fade-up delay-1">
-            <span class="breathe">Woof. Woof.</span>
-        </div>
+<main class="page">
+    <div class="portrait-stage fade-up">
+        <img class="portrait-img" src="images/background.webp" alt="KIGGS" width="2048" height="2048" fetchpriority="high" decoding="async">
+        <div class="portrait-vignette" aria-hidden="true"></div>
+        <div class="boop-ripple" id="boop-ripple" aria-hidden="true"></div>
+        <button class="boop-trigger" id="boop-trigger" type="button" aria-label="Boop"></button>
+        <div class="boop-toast" id="boop-toast" role="status" aria-live="polite" aria-atomic="true"></div>
     </div>
-</div>
 
-<div class="links-section">
-    <a href="https://instagram.com/kiggscz" target="_blank" rel="noopener noreferrer" class="link-btn instagram fade-up delay-1"><svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"></rect><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"></circle><circle cx="17.5" cy="6.5" r="1.25" fill="currentColor"></circle></svg>Instagram</a>
-    <a href="https://t.me/KiggsCZ" target="_blank" rel="noopener noreferrer" class="link-btn telegram fade-up delay-2"><svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path fill="currentColor" d="M21.7 4.3 18.6 19c-.2 1-1 1.3-1.8.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.4-4.9 8.9-8c.4-.4-.1-.6-.6-.2L6.4 13l-4.7-1.5c-1-.3-1-1 .2-1.5l18.4-7.1c.9-.3 1.7.2 1.4 1.4Z"></path></svg>Telegram</a>
-    <a href="https://jsem-pes.cz/clen/kiggs" target="_blank" rel="noopener noreferrer" class="link-btn jsempes fade-up delay-3"><svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10c-1.32 0 -1.983 .421 -2.931 1.924l-.244 .398l-.395 .688a50.89 50.89 0 0 0 -.141 .254c-.24 .434 -.571 .753 -1.139 1.142l-.55 .365c-.94 .627 -1.432 1.118 -1.707 1.955c-.124 .338 -.196 .853 -.193 1.28c0 1.687 1.198 2.994 2.8 2.994l.242 -.006c.119 -.006 .234 -.017 .354 -.034l.248 -.043l.132 -.028l.291 -.073l.162 -.045l.57 -.17l.763 -.243l.455 -.136c.53 -.15 .94 -.222 1.283 -.222c.344 0 .753 .073 1.283 .222l.455 .136l.764 .242l.569 .171l.312 .084c.097 .024 .187 .045 .273 .062l.248 .043c.12 .017 .235 .028 .354 .034l.242 .006c1.602 0 2.8 -1.307 2.8 -3c0 -.427 -.073 -.939 -.207 -1.306c-.236 -.724 -.677 -1.223 -1.48 -1.83l-.257 -.19l-.528 -.38c-.642 -.47 -1.003 -.826 -1.253 -1.278l-.27 -.485l-.252 -.432c-1.011 -1.696 -1.618 -2.099 -3.053 -2.099z"></path><path d="M19.78 7h-.03c-1.219 .02 -2.35 1.066 -2.908 2.504c-.69 1.775 -.348 3.72 1.075 4.333c.256 .109 .527 .163 .801 .163c1.231 0 2.38 -1.053 2.943 -2.504c.686 -1.774 .34 -3.72 -1.076 -4.332a2.05 2.05 0 0 0 -.804 -.164z"></path><path d="M9.025 3c-.112 0 -.185 .002 -.27 .015l-.093 .016c-1.532 .206 -2.397 1.989 -2.108 3.855c.272 1.725 1.462 3.114 2.92 3.114l.187 -.005a1.26 1.26 0 0 0 .084 -.01l.092 -.016c1.533 -.206 2.397 -1.989 2.108 -3.855c-.27 -1.727 -1.46 -3.114 -2.92 -3.114z"></path><path d="M14.972 3c-1.459 0 -2.647 1.388 -2.916 3.113c-.29 1.867 .574 3.65 2.174 3.867c.103 .013 .2 .02 .296 .02c1.39 0 2.543 -1.265 2.877 -2.883l.041 -.23c.29 -1.867 -.574 -3.65 -2.174 -3.867a2.154 2.154 0 0 0 -.298 -.02z"></path><path d="M4.217 7c-.274 0 -.544 .054 -.797 .161c-1.426 .615 -1.767 2.562 -1.078 4.335c.563 1.451 1.71 2.504 2.941 2.504c.274 0 .544 -.054 .797 -.161c1.426 -.615 1.767 -2.562 1.078 -4.335c-.563 -1.451 -1.71 -2.504 -2.941 -2.504z"></path></svg>Jsem-Pes.cz</a>
-    <a href="https://pobar.cz" target="_blank" rel="noopener noreferrer" class="link-btn pobar fade-up delay-4"><svg class="link-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><g transform="rotate(-45 12 12)"><rect x="9" y="3.5" width="6" height="17" rx="3"></rect><circle cx="8.5" cy="5.5" r="3.2"></circle><circle cx="15.5" cy="5.5" r="3.2"></circle><circle cx="8.5" cy="18.5" r="3.2"></circle><circle cx="15.5" cy="18.5" r="3.2"></circle></g></svg>Pobar</a>
-</div>
+    <div class="content">
+        <header class="identity fade-up delay-1">
+            <h1>KIGGS</h1>
+            <div class="slogan-row">
+                <span class="slogan-dot" aria-hidden="true"></span>
+                <span class="breathe">Woof. Woof.</span>
+            </div>
+        </header>
 
-<footer>
-    © 2026 KIGGS
-</footer>
+        <nav class="links-section" aria-label="Odkazy">
+            <a href="https://instagram.com/kiggscz" target="_blank" rel="noopener noreferrer" class="link-btn instagram fade-up delay-2">
+                <span class="icon-badge" aria-hidden="true">
+                    <svg class="link-icon" focusable="false" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"></rect>
+                        <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                        <circle cx="17.5" cy="6.5" r="1.25" fill="currentColor"></circle>
+                    </svg>
+                </span>
+                <span class="link-meta">
+                    <span class="link-title">Instagram</span>
+                    <span class="link-sub">@kiggscz</span>
+                </span>
+                <svg class="link-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7"></path>
+                    <path d="M8 7h9v9"></path>
+                </svg>
+            </a>
+
+            <a href="https://t.me/KiggsCZ" target="_blank" rel="noopener noreferrer" class="link-btn telegram fade-up delay-3">
+                <span class="icon-badge" aria-hidden="true">
+                    <svg class="link-icon" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M21.7 4.3 18.6 19c-.2 1-1 1.3-1.8.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.4-4.9 8.9-8c.4-.4-.1-.6-.6-.2L6.4 13l-4.7-1.5c-1-.3-1-1 .2-1.5l18.4-7.1c.9-.3 1.7.2 1.4 1.4Z"></path>
+                    </svg>
+                </span>
+                <span class="link-meta">
+                    <span class="link-title">Telegram</span>
+                    <span class="link-sub">@KiggsCZ</span>
+                </span>
+                <svg class="link-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7"></path>
+                    <path d="M8 7h9v9"></path>
+                </svg>
+            </a>
+
+            <a href="https://jsem-pes.cz/clen/kiggs" target="_blank" rel="noopener noreferrer" class="link-btn jsempes fade-up delay-4">
+                <span class="icon-badge" aria-hidden="true">
+                    <svg class="link-icon" focusable="false" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 10c-1.32 0 -1.983 .421 -2.931 1.924l-.244 .398l-.395 .688a50.89 50.89 0 0 0 -.141 .254c-.24 .434 -.571 .753 -1.139 1.142l-.55 .365c-.94 .627 -1.432 1.118 -1.707 1.955c-.124 .338 -.196 .853 -.193 1.28c0 1.687 1.198 2.994 2.8 2.994l.242 -.006c.119 -.006 .234 -.017 .354 -.034l.248 -.043l.132 -.028l.291 -.073l.162 -.045l.57 -.17l.763 -.243l.455 -.136c.53 -.15 .94 -.222 1.283 -.222c.344 0 .753 .073 1.283 .222l.455 .136l.764 .242l.569 .171l.312 .084c.097 .024 .187 .045 .273 .062l.248 .043c.12 .017 .235 .028 .354 .034l.242 .006c1.602 0 2.8 -1.307 2.8 -3c0 -.427 -.073 -.939 -.207 -1.306c-.236 -.724 -.677 -1.223 -1.48 -1.83l-.257 -.19l-.528 -.38c-.642 -.47 -1.003 -.826 -1.253 -1.278l-.27 -.485l-.252 -.432c-1.011 -1.696 -1.618 -2.099 -3.053 -2.099z"></path>
+                        <path d="M19.78 7h-.03c-1.219 .02 -2.35 1.066 -2.908 2.504c-.69 1.775 -.348 3.72 1.075 4.333c.256 .109 .527 .163 .801 .163c1.231 0 2.38 -1.053 2.943 -2.504c.686 -1.774 .34 -3.72 -1.076 -4.332a2.05 2.05 0 0 0 -.804 -.164z"></path>
+                        <path d="M9.025 3c-.112 0 -.185 .002 -.27 .015l-.093 .016c-1.532 .206 -2.397 1.989 -2.108 3.855c.272 1.725 1.462 3.114 2.92 3.114l.187 -.005a1.26 1.26 0 0 0 .084 -.01l.092 -.016c1.533 -.206 2.397 -1.989 2.108 -3.855c-.27 -1.727 -1.46 -3.114 -2.92 -3.114z"></path>
+                        <path d="M14.972 3c-1.459 0 -2.647 1.388 -2.916 3.113c-.29 1.867 .574 3.65 2.174 3.867c.103 .013 .2 .02 .296 .02c1.39 0 2.543 -1.265 2.877 -2.883l.041 -.23c.29 -1.867 -.574 -3.65 -2.174 -3.867a2.154 2.154 0 0 0 -.298 -.02z"></path>
+                        <path d="M4.217 7c-.274 0 -.544 .054 -.797 .161c-1.426 .615 -1.767 2.562 -1.078 4.335c.563 1.451 1.71 2.504 2.941 2.504c.274 0 .544 -.054 .797 -.161c1.426 -.615 1.767 -2.562 1.078 -4.335c-.563 -1.451 -1.71 -2.504 -2.941 -2.504z"></path>
+                    </svg>
+                </span>
+                <span class="link-meta">
+                    <span class="link-title">Jsem-Pes.cz</span>
+                    <span class="link-sub">jsem-pes.cz/clen/kiggs</span>
+                </span>
+                <svg class="link-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7"></path>
+                    <path d="M8 7h9v9"></path>
+                </svg>
+            </a>
+
+            <a href="https://pobar.cz" target="_blank" rel="noopener noreferrer" class="link-btn pobar fade-up delay-5">
+                <span class="icon-badge" aria-hidden="true">
+                    <svg class="link-icon" focusable="false" viewBox="0 0 24 24" fill="currentColor">
+                        <g transform="rotate(-45 12 12)">
+                            <rect x="9" y="3.5" width="6" height="17" rx="3"></rect>
+                            <circle cx="8.5" cy="5.5" r="3.2"></circle>
+                            <circle cx="15.5" cy="5.5" r="3.2"></circle>
+                            <circle cx="8.5" cy="18.5" r="3.2"></circle>
+                            <circle cx="15.5" cy="18.5" r="3.2"></circle>
+                        </g>
+                    </svg>
+                </span>
+                <span class="link-meta">
+                    <span class="link-title">Pobar</span>
+                    <span class="link-sub">pobar.cz</span>
+                </span>
+                <svg class="link-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17 17 7"></path>
+                    <path d="M8 7h9v9"></path>
+                </svg>
+            </a>
+        </nav>
+
+        <footer class="fade-up delay-5">© 2026 KIGGS</footer>
+    </div>
+</main>
 
 <script>
 const boopTrigger = document.getElementById("boop-trigger");
 const boopToast = document.getElementById("boop-toast");
+const boopRipple = document.getElementById("boop-ripple");
+const boopMessages = ["Boop!", "Boop!", "Woof!", "Boop! 🐾"];
+let boopCount = 0;
 let boopTimer;
 
 boopTrigger.addEventListener("click", () => {
     clearTimeout(boopTimer);
+    if (navigator.vibrate) navigator.vibrate(15);
+
+    boopRipple.classList.remove("is-active");
     boopToast.classList.remove("is-visible");
     boopToast.textContent = "";
 
+    const msg = boopMessages[boopCount % boopMessages.length];
+    boopCount += 1;
+
     window.requestAnimationFrame(() => {
-        boopToast.textContent = "Boop!";
+        void boopRipple.offsetWidth;
+        boopRipple.classList.add("is-active");
+        boopToast.textContent = msg;
         boopToast.classList.add("is-visible");
     });
 
     boopTimer = window.setTimeout(() => {
         boopToast.classList.remove("is-visible");
         boopToast.textContent = "";
-    }, 1600);
+    }, 1500);
 });
+
+if (window.matchMedia("(pointer: fine)").matches) {
+    document.querySelectorAll(".link-btn").forEach((card) => {
+        card.addEventListener("pointermove", (e) => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+            card.style.setProperty("--my", `${e.clientY - rect.top}px`);
+        });
+    });
+}
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -260,6 +746,5 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-
-
-</body></html>
+</body>
+</html>
