@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#060d18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Velín">
+<title>Velín smečky — Paw Trail</title>
+
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../images/app-icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="manifest" href="/lov/admin.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg: #060d18;
+    --card: rgba(14, 24, 42, 0.74);
+    --border: rgba(255, 255, 255, 0.10);
+    --border-accent: rgba(242, 211, 43, 0.42);
+    --text: #f5f7fb;
+    --muted: rgba(226, 232, 240, 0.66);
+    --accent: #f2d32b;
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.14);
+    --danger: #ff6b6b;
+    --danger-soft: rgba(255, 107, 107, 0.14);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { color-scheme: dark; background: var(--bg); }
+
+body {
+    min-height: 100dvh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 15% 15%, rgba(22, 58, 138, 0.35), transparent 50%),
+        radial-gradient(circle at 85% 85%, rgba(242, 211, 43, 0.14), transparent 50%),
+        var(--bg);
+    padding: max(24px, env(safe-area-inset-top)) 18px max(48px, env(safe-area-inset-bottom));
+}
+
+.wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.pill:hover { border-color: var(--border-accent); }
+
+.panel {
+    padding: 22px;
+    border-radius: 22px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+h1, h2 { font-family: 'Space Grotesk', 'Inter', sans-serif; }
+h1 { font-size: 1.55rem; }
+h1 span { color: var(--accent); }
+h2 { font-size: 1.08rem; }
+
+.sub {
+    font-size: 0.86rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.login-shell {
+    max-width: 420px;
+    margin: 48px auto;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.field label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(6, 13, 24, 0.88);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.92rem;
+}
+
+.field textarea { min-height: 68px; resize: vertical; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 11px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: all 0.2s ease;
+}
+
+.btn:hover { border-color: var(--border-accent); background: rgba(242, 211, 43, 0.14); }
+
+.btn.primary {
+    background: var(--accent);
+    color: #0b1220;
+    border-color: transparent;
+}
+.btn.primary:hover { background: #f7dc4d; }
+
+.btn.google {
+    background: #ffffff;
+    color: #111827;
+    border-color: transparent;
+}
+.btn.google:hover { background: #f1f5f9; }
+
+.btn.green {
+    background: var(--green);
+    color: #042117;
+    border-color: transparent;
+}
+
+.btn.danger {
+    background: var(--danger-soft);
+    color: #ffb4b4;
+    border-color: rgba(255, 107, 107, 0.35);
+}
+.btn.danger:hover { background: rgba(255, 107, 107, 0.25); }
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.76rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: rgba(6, 13, 24, 0.65);
+    border: 1px solid var(--border);
+}
+
+.state-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.state-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 12px var(--danger);
+}
+
+.state-badge.is-live .state-dot {
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(6, 13, 24, 0.72);
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+#qr-canvas,
+#sticker-canvas {
+    border-radius: 14px;
+    width: 100% !important;
+    max-width: 280px;
+    height: auto !important;
+    display: block;
+    background: #060d18;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+#qr-canvas {
+    background: #ffffff;
+}
+
+.code-block {
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: rgba(4, 9, 18, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #dbeafe;
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.msg {
+    padding: 10px 13px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+    display: none;
+}
+.msg.show { display: block; }
+.msg.err { background: var(--danger-soft); color: #ffb4b4; border: 1px solid rgba(255, 107, 107, 0.35); }
+.msg.ok { background: var(--green-soft); color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.35); }
+.msg.warn { background: rgba(242, 211, 43, 0.12); color: #fde68a; border: 1px solid rgba(242, 211, 43, 0.32); }
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(6, 13, 24, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    flex-wrap: wrap;
+}
+
+.item-title { font-weight: 600; font-size: 0.92rem; }
+.item-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.is-hidden { display: none !important; }
+
+@media (max-width: 760px) {
+    .grid, .row2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+    <div class="topbar">
+        <a href="../index.html" class="pill">← Zpět na kiggs.cz</a>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <a href="index.html" class="pill">🗺️ Otevřít Paw Trail</a>
+            <button type="button" class="pill is-hidden" id="logout-btn">Odhlásit se</button>
+        </div>
+    </div>
+
+    <!-- LOGIN GATE -->
+    <section class="panel login-shell" id="login-view">
+        <h1>Velín <span>smečky</span> 🐾</h1>
+        <p class="sub">Zabezpečený vstup pro <strong>Kiggs × Pobar</strong>. Přihlas se svým účtem smečky.</p>
+
+        <div class="msg warn" id="local-mode-banner"></div>
+
+        <button type="button" class="btn google" id="google-login-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/>
+                <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.2 0-5.8-2.1-6.8-5H1.2v3.1C3.2 21.3 7.3 24 12 24Z"/>
+                <path fill="#FBBC05" d="M5.2 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.2C.4 8.2 0 10.1 0 12s.4 3.8 1.2 5.4l4-3.1Z"/>
+                <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3.1c1-2.9 3.6-4.9 6.8-4.9Z"/>
+            </svg>
+            Pokračovat přes Google
+        </button>
+
+        <div class="divider">nebo e-mailem</div>
+
+        <form id="login-form" style="display:flex;flex-direction:column;gap:12px;">
+            <div class="field">
+                <label for="login-email">E-mail</label>
+                <input id="login-email" type="email" autocomplete="username" required placeholder="tvuj@email.cz">
+            </div>
+            <div class="field">
+                <label for="login-pass">Heslo</label>
+                <input id="login-pass" type="password" autocomplete="current-password" required placeholder="••••••••">
+            </div>
+            <div class="msg" id="login-msg"></div>
+            <button type="submit" class="btn primary" id="login-submit">Otevřít velín</button>
+        </form>
+
+        <button type="button" class="btn is-hidden" id="enter-local-btn">Otevřít lokální testovací režim</button>
+    </section>
+
+    <!-- AUTHENTICATED DASHBOARD -->
+    <div id="admin-view" class="is-hidden" style="display:flex;flex-direction:column;gap:18px;">
+        <section class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                    <h1>Velín <span>smečky</span> 🐾</h1>
+                    <p class="sub" id="admin-identity">Přihlášený účet</p>
+                </div>
+                <span class="pill" id="admin-counters">0 rozhleden • 0 nálezů</span>
+            </div>
+
+            <div class="status-bar">
+                <div>
+                    <div class="state-badge" id="state-badge">
+                        <span class="state-dot"></span>
+                        <span id="state-label">HRA JE ZAMČENÁ (Již brzy)</span>
+                    </div>
+                    <p class="sub" style="margin-top:4px;">Ovládá tlačítko Paw Trail na hlavní stránce i přístup na <code>/lov/</code>.</p>
+                </div>
+                <button type="button" class="btn green" id="toggle-trail-btn">🚀 Spustit Paw Trail</button>
+            </div>
+
+            <div class="field">
+                <label for="teaser-input">Text hlášky, dokud je hra zamčená</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input id="teaser-input" type="text" style="flex:1;min-width:220px;" placeholder="Paw Trail (Kiggs × Pobar) startuje už brzy 🐾">
+                    <button type="button" class="btn" id="save-teaser-btn">Uložit text</button>
+                </div>
+            </div>
+            <div class="msg" id="status-msg"></div>
+        </section>
+
+        <!-- ADD SPOT + QR/NFC GENERATOR -->
+        <div class="grid">
+            <section class="panel">
+                <h2>➕ Přidat rozhlednu &amp; vygenerovat QR / NFC</h2>
+
+                <div class="field">
+                    <label for="f-name">Název rozhledny</label>
+                    <input id="f-name" type="text" placeholder="např. Rozhledna Velký Kosíř">
+                </div>
+
+                <div class="row2">
+                    <div class="field">
+                        <label for="f-region">Kraj / oblast</label>
+                        <input id="f-region" type="text" placeholder="např. Jihomoravský kraj">
+                    </div>
+                    <div class="field">
+                        <label for="f-elev">Nadmořská výška (m)</label>
+                        <input id="f-elev" type="number" placeholder="450">
+                    </div>
+                </div>
+
+                <div class="row2">
+                    <div class="field">
+                        <label for="f-lat">GPS šířka (lat)</label>
+                        <input id="f-lat" type="text" placeholder="49.3089">
+                    </div>
+                    <div class="field">
+                        <label for="f-lng">GPS délka (lng)</label>
+                        <input id="f-lng" type="text" placeholder="16.5784">
+                    </div>
+                </div>
+
+                <button type="button" class="btn" id="gps-here-btn">📍 Načíst moji aktuální GPS (přímo na rozhledně)</button>
+
+                <div class="field">
+                    <label for="f-hint">Nápověda (viditelná před nalezením)</label>
+                    <input id="f-hint" type="text" placeholder="Hledej naši nálepku u vstupního zábradlí.">
+                </div>
+
+                <div class="field">
+                    <label for="f-note">Tajný vzkaz (zobrazí se po odemčení)</label>
+                    <textarea id="f-note" placeholder="Skvělý výstup! Pozdravují Kiggs × Pobar 🐾"></textarea>
+                </div>
+
+                <div class="msg" id="spot-msg"></div>
+                <button type="button" class="btn primary" id="create-spot-btn">⚡ Uložit rozhlednu &amp; vygenerovat QR/NFC</button>
+            </section>
+
+            <section class="panel">
+                <h2>🖨️ QR nálepka &amp; NFC odkaz</h2>
+
+                <div class="qr-box">
+                    <canvas id="sticker-canvas" width="1000" height="1200"></canvas>
+                    <canvas id="qr-canvas" width="512" height="512" class="is-hidden"></canvas>
+                    <div class="row2" style="width:100%;">
+                        <button type="button" class="btn" id="preview-mode-btn">Náhled: Tisková nálepka</button>
+                        <button type="button" class="btn" id="qr-style-btn">QR: Černobílý</button>
+                    </div>
+                    <div class="row2" style="width:100%;">
+                        <button type="button" class="btn primary" id="sticker-download-btn" disabled>⬇ Stáhnout nálepku</button>
+                        <button type="button" class="btn" id="qr-download-btn" disabled>⬇ Jen QR kód</button>
+                    </div>
+                    <p class="sub" style="font-size:0.78rem;">⚠️ Tajný kód a nálepku si hned ulož / zapiš do NFC — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:var(--muted);">
+                    <span>URL pro zápis do NFC čipu (NFC Tools):</span>
+                    <button type="button" class="btn" id="copy-url-btn" style="padding:4px 10px;font-size:0.74rem;">Kopírovat</button>
+                </div>
+                <div class="code-block" id="out-url">Zatím nevygenerováno</div>
+            </section>
+        </div>
+
+        <!-- EXISTING SPOTS -->
+        <section class="panel">
+            <h2>🗺️ Přidané rozhledny</h2>
+            <div class="list" id="spots-list"></div>
+        </section>
+
+        <!-- RECENT CLAIMS -->
+        <section class="panel">
+            <h2>🐾 Poslední nálezy hráčů</h2>
+            <div class="list" id="claims-list"></div>
+        </section>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script>
+const CFG = window.KIGGS_LOV_CONFIG || { SITE_URL: "https://kiggs.cz/lov/" };
+const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase);
+const sb = IS_ONLINE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
+
+const LOCAL_ENABLED_KEY = "kiggs_trail_local_enabled";
+const LOCAL_TEASER_KEY = "kiggs_trail_local_teaser";
+
+let localMode = false;
+let trailEnabled = false;
+let darkQrStyle = false;
+let showStickerPreview = true;
+let lastGeneratedUrl = "";
+let lastGeneratedSlug = "rozhledna";
+let lastSpotMeta = { name: "Paw Trail", elev: 0 };
+
+function showMsg(elId, text, type) {
+    const el = document.getElementById(elId);
+    if (!text) { el.className = "msg"; el.textContent = ""; return; }
+    el.className = `msg show ${type || ""}`;
+    el.textContent = text;
+}
+
+function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function slugify(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "rozhledna";
+}
+
+function randomSecretCode() {
+    const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+    const bytes = new Uint8Array(12);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
+async function sbAdminRpc(fnName, params) {
+    const { data, error } = await sb.rpc(fnName, params || {});
+    if (error) throw new Error(error.message || "Chyba komunikace se serverem.");
+    return data;
+}
+
+function renderTrailStatusUI(enabled, teaser) {
+    trailEnabled = Boolean(enabled);
+    const badge = document.getElementById("state-badge");
+    const label = document.getElementById("state-label");
+    const btn = document.getElementById("toggle-trail-btn");
+    const input = document.getElementById("teaser-input");
+
+    badge.classList.toggle("is-live", trailEnabled);
+    label.textContent = trailEnabled ? "HRA JE SPUŠTĚNÁ (veřejná)" : "HRA JE ZAMČENÁ (Již brzy)";
+    btn.textContent = trailEnabled ? "🔒 Zamknout Paw Trail" : "🚀 Spustit Paw Trail";
+    btn.className = trailEnabled ? "btn danger" : "btn green";
+    if (teaser != null) input.value = teaser;
+}
+
+async function loadDashboard() {
+    if (localMode) {
+        const enabled = localStorage.getItem(LOCAL_ENABLED_KEY) === "1";
+        const teaser = localStorage.getItem(LOCAL_TEASER_KEY) || CFG.DEFAULT_TEASER_MESSAGE;
+        document.getElementById("admin-identity").textContent = "Lokální testovací režim — změny platí jen v tomto prohlížeči";
+        document.getElementById("admin-counters").textContent = `${(CFG.DEMO_SPOTS || []).length} demo rozhleden`;
+        renderTrailStatusUI(enabled, teaser);
+
+        document.getElementById("spots-list").innerHTML = (CFG.DEMO_SPOTS || []).map((s) => `
+            <div class="item-row">
+                <div>
+                    <div class="item-title">${escapeHtml(s.name)}</div>
+                    <div class="item-meta">${escapeHtml(s.region)} • ${s.elevation} m • ${s.lat}, ${s.lng}</div>
+                </div>
+                <span class="sub">Demo</span>
+            </div>
+        `).join("");
+        document.getElementById("claims-list").innerHTML = `<p class="sub">V lokálním testovacím režimu se nálezy neukládají na server.</p>`;
+        return;
+    }
+
+    const info = await sbAdminRpc("admin_check");
+    if (!info || !info.ok) {
+        throw new Error((info && info.error) || "Tento účet nemá přístup do velína smečky.");
+    }
+
+    document.getElementById("admin-identity").textContent = `Přihlášen jako ${info.email} • Ověřený přístup smečky`;
+    document.getElementById("admin-counters").textContent = `${info.spots_count} rozhleden • ${info.claims_count} nálezů`;
+    renderTrailStatusUI(info.trail_enabled, info.teaser_message);
+
+    const [spots, claims] = await Promise.all([
+        sbAdminRpc("admin_list_spots"),
+        sbAdminRpc("admin_list_claims", { p_limit: 25 })
+    ]);
+
+    const spotsEl = document.getElementById("spots-list");
+    if (!spots.length) {
+        spotsEl.innerHTML = `<p class="sub">Zatím nemáš přidanou žádnou rozhlednu. Přidej první výše!</p>`;
+    } else {
+        spotsEl.innerHTML = spots.map((s) => `
+            <div class="item-row">
+                <div>
+                    <div class="item-title">${escapeHtml(s.name)}</div>
+                    <div class="item-meta">${escapeHtml(s.region)} • ${s.elevation} m • Nálezců: ${s.finders_count}${s.ftf_nickname ? ` • 🥇 FTF: ${escapeHtml(s.ftf_nickname)}` : ""}</div>
+                </div>
+                <button type="button" class="btn danger" data-del-spot="${escapeHtml(s.id)}" style="padding:6px 11px;font-size:0.78rem;">Smazat</button>
+            </div>
+        `).join("");
+
+        spotsEl.querySelectorAll("[data-del-spot]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                const id = b.dataset.delSpot;
+                if (!confirm(`Opravdu smazat rozhlednu „${id}“ včetně jejích nálezů?`)) return;
+                try {
+                    await sbAdminRpc("admin_delete_spot", { p_id: id });
+                    await loadDashboard();
+                } catch (e) { alert(e.message); }
+            });
+        });
+    }
+
+    const claimsEl = document.getElementById("claims-list");
+    if (!claims.length) {
+        claimsEl.innerHTML = `<p class="sub">Zatím žádné nálezy.</p>`;
+    } else {
+        claimsEl.innerHTML = claims.map((c) => `
+            <div class="item-row">
+                <div>
+                    <div class="item-title">${escapeHtml(c.nickname)} → ${escapeHtml(c.spot_name)}</div>
+                    <div class="item-meta">${c.is_ftf ? "🥇 FTF • " : ""}${c.gps_verified ? `📍 GPS (${c.distance_m ?? 0} m) • ` : "Bez GPS • "}${new Date(c.claimed_at).toLocaleString("cs-CZ")}</div>
+                </div>
+                <button type="button" class="btn danger" data-del-claim="${c.id}" style="padding:6px 11px;font-size:0.78rem;">Smazat</button>
+            </div>
+        `).join("");
+
+        claimsEl.querySelectorAll("[data-del-claim]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                if (!confirm("Smazat tento záznam nálezu?")) return;
+                try {
+                    await sbAdminRpc("admin_delete_claim", { p_claim_id: Number(b.dataset.delClaim) });
+                    await loadDashboard();
+                } catch (e) { alert(e.message); }
+            });
+        });
+    }
+}
+
+function showAdminView() {
+    document.getElementById("login-view").classList.add("is-hidden");
+    document.getElementById("admin-view").classList.remove("is-hidden");
+    document.getElementById("logout-btn").classList.remove("is-hidden");
+}
+
+function showLoginView() {
+    document.getElementById("admin-view").classList.add("is-hidden");
+    document.getElementById("logout-btn").classList.add("is-hidden");
+    document.getElementById("login-view").classList.remove("is-hidden");
+}
+
+function drawRoundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function drawPawIcon(ctx, cx, cy, s, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    // Hlavní polštářek
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + s * 0.22, s * 0.42, s * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // 4 prsty
+    const toes = [
+        [-0.44, -0.18, -0.25],
+        [-0.16, -0.42, -0.08],
+        [0.16, -0.42, 0.08],
+        [0.44, -0.18, 0.25]
+    ];
+    toes.forEach(([dx, dy, rot]) => {
+        ctx.beginPath();
+        ctx.ellipse(cx + dx * s, cy + dy * s, s * 0.14, s * 0.20, rot, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.restore();
+}
+
+function renderStickerCard(qrCanvas, spotName, elev) {
+    const canvas = document.getElementById("sticker-canvas");
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // 1. Tmavé pozadí + jemná noční záře
+    ctx.fillStyle = "#060d18";
+    ctx.fillRect(0, 0, W, H);
+
+    const g1 = ctx.createRadialGradient(W * 0.2, H * 0.12, 20, W * 0.2, H * 0.12, W * 0.75);
+    g1.addColorStop(0, "rgba(22, 58, 138, 0.55)");
+    g1.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, W, H);
+
+    const g2 = ctx.createRadialGradient(W * 0.85, H * 0.92, 10, W * 0.85, H * 0.92, W * 0.65);
+    g2.addColorStop(0, "rgba(242, 211, 43, 0.22)");
+    g2.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Vnější žlutý rámeček s bezpečným okrajem pro ořez
+    drawRoundRect(ctx, 26, 26, W - 52, H - 52, 54);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#f2d32b";
+    ctx.stroke();
+
+    // Jemná vnitřní linka
+    drawRoundRect(ctx, 44, 44, W - 88, H - 88, 42);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.stroke();
+
+    // 3. Hlavička: PAW TRAIL + tlapky + KIGGS × POBAR
+    drawPawIcon(ctx, 132, 128, 38, "#f2d32b");
+    drawPawIcon(ctx, W - 132, 128, 38, "#f2d32b");
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#f5f7fb";
+    ctx.font = "700 80px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("PAW TRAIL", W / 2, 122);
+
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 32px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("K I G G S   ×   P O B A R", W / 2, 192);
+
+    // 4. Bílý vysoce kontrastní box pro QR kód (vždy čistě černobílý pro 100% čitelnost venku!)
+    const boxSize = 650;
+    const boxX = (W - boxSize) / 2;
+    const boxY = 248;
+    drawRoundRect(ctx, boxX, boxY, boxSize, boxSize, 38);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    // QR kód dovnitř boxu s bezpečnou tichou zónou
+    const qrPad = 36;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(qrCanvas, boxX + qrPad, boxY + qrPad, boxSize - qrPad * 2, boxSize - qrPad * 2);
+    ctx.imageSmoothingEnabled = true;
+
+    // 5. Patička: výzva k naskenování + název rozhledny + web
+    drawRoundRect(ctx, 140, 938, W - 280, 62, 31);
+    ctx.fillStyle = "rgba(242, 211, 43, 0.16)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(242, 211, 43, 0.55)";
+    ctx.stroke();
+
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 28px 'Inter', Arial, sans-serif";
+    ctx.fillText("NASKENUJ QR  •  PŘILOŽ NFC", W / 2, 970);
+
+    // Název rozhledny (s automatickým zmenšením písma, pokud je dlouhý)
+    let title = spotName || "Paw Trail";
+    if (elev > 0) title += ` (${elev} m)`;
+    let fontSize = 36;
+    ctx.font = `600 ${fontSize}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    while (ctx.measureText(title).width > W - 130 && fontSize > 22) {
+        fontSize -= 2;
+        ctx.font = `600 ${fontSize}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    }
+    ctx.fillStyle = "#f5f7fb";
+    ctx.fillText(title, W / 2, 1054);
+
+    ctx.fillStyle = "rgba(226, 232, 240, 0.58)";
+    ctx.font = "600 25px 'Inter', Arial, sans-serif";
+    ctx.fillText("kiggs.cz/lov", W / 2, 1114);
+}
+
+async function renderQr(url) {
+    const canvas = document.getElementById("qr-canvas");
+    if (typeof QRCode === "undefined") return;
+
+    // 1. Samostatný QR (černobílý nebo Kiggs×Pobar)
+    await QRCode.toCanvas(canvas, url, {
+        width: 512,
+        margin: 2,
+        errorCorrectionLevel: "H",
+        color: darkQrStyle ? { dark: "#f2d32b", light: "#060d18" } : { dark: "#000000", light: "#ffffff" }
+    });
+    // Zruš inline rozměry z QR knihovny, aby CSS nezkreslovalo poměr stran
+    canvas.style.width = "";
+    canvas.style.height = "";
+
+    // 2. Pro tiskovou nálepku vygeneruj vždy vysoce kontrastní černobílý QR na pomocný canvas
+    const bwCanvas = document.createElement("canvas");
+    await QRCode.toCanvas(bwCanvas, url, {
+        width: 580,
+        margin: 1,
+        errorCorrectionLevel: "H",
+        color: { dark: "#000000", light: "#ffffff" }
+    });
+    renderStickerCard(bwCanvas, lastSpotMeta.name, lastSpotMeta.elev);
+
+    document.getElementById("qr-download-btn").disabled = false;
+    document.getElementById("sticker-download-btn").disabled = false;
+}
+
+/* Events */
+document.getElementById("google-login-btn").addEventListener("click", async () => {
+    if (!IS_ONLINE) {
+        showMsg("login-msg", "Online server ještě není připojený v lov/config.js (můžeš použít lokální testovací režim níže).", "warn");
+        return;
+    }
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+    if (error) showMsg("login-msg", error.message, "err");
+});
+
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!IS_ONLINE) {
+        showMsg("login-msg", "Online server ještě není připojený v lov/config.js (můžeš použít lokální testovací režim níže).", "warn");
+        return;
+    }
+    showMsg("login-msg", "Ověřuji přístup…");
+    try {
+        const { error } = await sb.auth.signInWithPassword({
+            email: document.getElementById("login-email").value.trim(),
+            password: document.getElementById("login-pass").value
+        });
+        if (error) throw error;
+        localMode = false;
+        await loadDashboard();
+        showAdminView();
+        showMsg("login-msg", "");
+    } catch (err) {
+        showMsg("login-msg", err.message || "Přihlášení selhalo.", "err");
+    }
+});
+
+document.getElementById("enter-local-btn").addEventListener("click", async () => {
+    localMode = true;
+    await loadDashboard();
+    showAdminView();
+});
+
+document.getElementById("logout-btn").addEventListener("click", async () => {
+    localMode = false;
+    if (sb) await sb.auth.signOut();
+    showLoginView();
+});
+
+document.getElementById("toggle-trail-btn").addEventListener("click", async () => {
+    const next = !trailEnabled;
+    const teaser = document.getElementById("teaser-input").value.trim();
+    showMsg("status-msg", "Ukládám stav hry…");
+    try {
+        if (localMode) {
+            localStorage.setItem(LOCAL_ENABLED_KEY, next ? "1" : "0");
+            if (teaser) localStorage.setItem(LOCAL_TEASER_KEY, teaser);
+            renderTrailStatusUI(next, teaser);
+            showMsg("status-msg", next ? "Paw Trail je lokálně SPUŠTĚNÝ (otevři index.html a zkontroluj tlačítko)." : "Paw Trail je lokálně ZAMČENÝ.", "ok");
+        } else {
+            const res = await sbAdminRpc("admin_set_trail_status", { p_enabled: next, p_teaser_message: teaser || null });
+            renderTrailStatusUI(res.trail_enabled, res.teaser_message);
+            showMsg("status-msg", res.trail_enabled ? "🚀 Paw Trail je teď SPUŠTĚNÝ pro všechny!" : "🔒 Paw Trail je ZAMČENÝ (Již brzy).", "ok");
+        }
+    } catch (err) {
+        showMsg("status-msg", err.message, "err");
+    }
+});
+
+document.getElementById("save-teaser-btn").addEventListener("click", async () => {
+    const teaser = document.getElementById("teaser-input").value.trim();
+    if (!teaser) return;
+    try {
+        if (localMode) {
+            localStorage.setItem(LOCAL_TEASER_KEY, teaser);
+            showMsg("status-msg", "Text uložen lokálně ✓", "ok");
+        } else {
+            await sbAdminRpc("admin_set_trail_status", { p_enabled: trailEnabled, p_teaser_message: teaser });
+            showMsg("status-msg", "Text uložen ✓", "ok");
+        }
+    } catch (err) {
+        showMsg("status-msg", err.message, "err");
+    }
+});
+
+document.getElementById("gps-here-btn").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    if (!navigator.geolocation) { btn.textContent = "GPS není dostupné"; return; }
+    btn.textContent = "📍 Načítám GPS…";
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            document.getElementById("f-lat").value = pos.coords.latitude.toFixed(5);
+            document.getElementById("f-lng").value = pos.coords.longitude.toFixed(5);
+            btn.textContent = "📍 GPS načteno!";
+        },
+        () => { btn.textContent = "📍 Nepodařilo se získat GPS"; },
+        { enableHighAccuracy: true, timeout: 9000 }
+    );
+});
+
+document.getElementById("create-spot-btn").addEventListener("click", async () => {
+    const name = document.getElementById("f-name").value.trim();
+    const region = document.getElementById("f-region").value.trim();
+    const elev = Number(document.getElementById("f-elev").value || 0);
+    const lat = Number(String(document.getElementById("f-lat").value).replace(",", "."));
+    const lng = Number(String(document.getElementById("f-lng").value).replace(",", "."));
+    const hint = document.getElementById("f-hint").value.trim();
+    const note = document.getElementById("f-note").value.trim();
+
+    if (!name || !region || Number.isNaN(lat) || Number.isNaN(lng)) {
+        showMsg("spot-msg", "Vyplň název, kraj a platné GPS souřadnice (lat, lng).", "err");
+        return;
+    }
+
+    const id = slugify(name);
+    const secretCode = randomSecretCode();
+    const codeHash = await window.kiggsSha256(secretCode);
+    const base = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
+    const fullUrl = `${base}?k=${secretCode}`;
+
+    lastGeneratedUrl = fullUrl;
+    lastGeneratedSlug = id;
+    lastSpotMeta = { name, elev };
+    document.getElementById("out-url").textContent = fullUrl;
+    await renderQr(fullUrl);
+
+    if (localMode) {
+        showMsg("spot-msg", `Vygenerován QR a NFC odkaz pro „${name}“ (lokální režim — na server se uloží až po připojení databáze).`, "warn");
+        return;
+    }
+
+    showMsg("spot-msg", "Ukládám rozhlednu…");
+    try {
+        await sbAdminRpc("admin_upsert_spot", {
+            p_id: id, p_name: name, p_region: region, p_elevation: elev,
+            p_lat: lat, p_lng: lng, p_hint: hint, p_secret_note: note, p_code_hash: codeHash
+        });
+        showMsg("spot-msg", `✓ Rozhledna „${name}“ uložena! Teď si stáhni QR kód a zkopíruj NFC odkaz.`, "ok");
+        await loadDashboard();
+    } catch (err) {
+        showMsg("spot-msg", err.message, "err");
+    }
+});
+
+document.getElementById("preview-mode-btn").addEventListener("click", (e) => {
+    showStickerPreview = !showStickerPreview;
+    document.getElementById("sticker-canvas").classList.toggle("is-hidden", !showStickerPreview);
+    document.getElementById("qr-canvas").classList.toggle("is-hidden", showStickerPreview);
+    e.currentTarget.textContent = showStickerPreview ? "Náhled: Tisková nálepka" : "Náhled: Jen QR kód";
+});
+
+document.getElementById("qr-style-btn").addEventListener("click", async (e) => {
+    darkQrStyle = !darkQrStyle;
+    e.currentTarget.textContent = darkQrStyle ? "QR: Kiggs × Pobar" : "QR: Černobílý";
+    if (lastGeneratedUrl) await renderQr(lastGeneratedUrl);
+});
+
+document.getElementById("sticker-download-btn").addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = `pawtrail-nalepka-${lastGeneratedSlug}.png`;
+    link.href = document.getElementById("sticker-canvas").toDataURL("image/png");
+    link.click();
+});
+
+document.getElementById("qr-download-btn").addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = `pawtrail-qr-${lastGeneratedSlug}.png`;
+    link.href = document.getElementById("qr-canvas").toDataURL("image/png");
+    link.click();
+});
+
+document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
+    if (!lastGeneratedUrl) return;
+    try {
+        await navigator.clipboard.writeText(lastGeneratedUrl);
+        e.currentTarget.textContent = "Zkopírováno ✓";
+        setTimeout(() => { e.currentTarget.textContent = "Kopírovat"; }, 1400);
+    } catch {}
+});
+
+/* Init */
+(async () => {
+    if (!IS_ONLINE) {
+        showMsg("local-mode-banner", "Online databáze zatím není připojená — níže si můžeš vyzkoušet lokální testovací režim.", "warn");
+        document.getElementById("enter-local-btn").classList.remove("is-hidden");
+        return;
+    }
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+        try {
+            await loadDashboard();
+            showAdminView();
+        } catch (err) {
+            showMsg("login-msg", err.message || "Tento účet nemá přístup do velína smečky.", "err");
+        }
+    }
+})();
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    });
+}
+</script>
+
+</body>
+</html>
