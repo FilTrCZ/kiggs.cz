@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#060d18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Paw Trail — Kiggs × Pobar</title>
+<meta name="description" content="Paw Trail (Kiggs × Pobar) — najdi naše nálepky na rozhlednách, sbírej odznaky a získej FTF v žebříčku.">
+
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="manifest" href="../manifest.webmanifest?v=2">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+
+<style>
+:root {
+    --bg: #060d18;
+    --card: rgba(14, 24, 42, 0.72);
+    --card-solid: #0d182b;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-accent: rgba(242, 211, 43, 0.42);
+    --text: #f5f7fb;
+    --muted: rgba(226, 232, 240, 0.64);
+    --accent: #f2d32b;
+    --accent-soft: rgba(242, 211, 43, 0.14);
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.14);
+    --danger: #ff6b6b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    color-scheme: dark;
+    background: var(--bg);
+}
+
+body {
+    min-height: 100dvh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+}
+
+.ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.ambient::before,
+.ambient::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(115px);
+    opacity: 0.42;
+}
+
+.ambient::before {
+    width: min(65vw, 660px);
+    height: min(65vw, 660px);
+    top: -18%;
+    left: -14%;
+    background: radial-gradient(circle, rgba(22, 58, 138, 0.85) 0%, transparent 72%);
+}
+
+.ambient::after {
+    width: min(55vw, 560px);
+    height: min(55vw, 560px);
+    bottom: -22%;
+    right: -12%;
+    background: radial-gradient(circle, rgba(242, 211, 43, 0.20) 0%, transparent 72%);
+}
+
+.wrap {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: max(20px, env(safe-area-inset-top)) 18px max(48px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Header */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.back-btn,
+.pill-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.back-btn:hover,
+.pill-btn:hover {
+    border-color: var(--border-accent);
+    background: rgba(18, 30, 52, 0.86);
+    transform: translateY(-1px);
+}
+
+.pill-btn.primary {
+    background: var(--accent);
+    color: #0b1220;
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(242, 211, 43, 0.24);
+}
+
+.pill-btn.primary:hover {
+    background: #f7dc4d;
+    color: #0b1220;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Hero summary */
+.hero {
+    padding: 22px;
+    border-radius: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.34);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.hero-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.hero-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 2px solid var(--border-accent);
+    flex-shrink: 0;
+}
+
+.hero h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: clamp(1.35rem, 3.6vw, 1.85rem);
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+}
+
+.hero h1 span {
+    color: var(--accent);
+}
+
+.hero-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.mode-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: rgba(6, 13, 24, 0.55);
+}
+
+.mode-badge.is-online {
+    color: var(--green);
+    border-color: rgba(52, 211, 153, 0.35);
+    background: var(--green-soft);
+}
+
+.progress-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.progress-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.84rem;
+    color: var(--muted);
+}
+
+.progress-head strong {
+    color: var(--accent);
+}
+
+.progress-track {
+    width: 100%;
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #d1af00 0%, #f2d32b 100%);
+    box-shadow: 0 0 16px rgba(242, 211, 43, 0.45);
+    transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stats-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.stat-tile {
+    padding: 11px 13px;
+    border-radius: 14px;
+    background: rgba(6, 13, 24, 0.56);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stat-tile .lbl {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.stat-tile .val {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.stat-tile .val.accent { color: var(--accent); }
+.stat-tile .val.green { color: var(--green); }
+
+/* Tabs */
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 6px;
+    border-radius: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.tab-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab-btn.is-active {
+    background: rgba(242, 211, 43, 0.16);
+    color: var(--accent);
+}
+
+.view {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.view.is-active {
+    display: flex;
+}
+
+/* Map container */
+.map-shell {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #081222;
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background: #081222;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background: #0e1a30;
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
+}
+
+.leaflet-popup-content {
+    margin: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.map-pin {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 2px solid rgba(255, 255, 255, 0.26);
+    background: rgba(13, 24, 43, 0.92);
+    color: rgba(226, 232, 240, 0.72);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.map-pin.is-found {
+    background: var(--accent);
+    color: #0b1220;
+    border-color: #ffffff;
+    box-shadow: 0 0 18px rgba(242, 211, 43, 0.65);
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-chip.is-active {
+    color: var(--accent);
+    border-color: var(--border-accent);
+    background: var(--accent-soft);
+}
+
+/* Spots grid */
+.spots-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.spot-card {
+    position: relative;
+    padding: 18px;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.spot-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
+}
+
+.spot-card.is-found {
+    border-color: rgba(242, 211, 43, 0.36);
+    background: linear-gradient(155deg, rgba(242, 211, 43, 0.08) 0%, rgba(14, 24, 42, 0.78) 55%);
+}
+
+.spot-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.spot-name {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 1.06rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.spot-region {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.spot-stamp {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.spot-card.is-found .spot-stamp {
+    background: var(--accent-soft);
+    border-color: var(--border-accent);
+}
+
+.spot-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(6, 13, 24, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+}
+
+.tag.gold {
+    color: var(--accent);
+    border-color: rgba(242, 211, 43, 0.35);
+    background: var(--accent-soft);
+}
+
+.tag.gps {
+    color: var(--green);
+    border-color: rgba(52, 211, 153, 0.35);
+    background: var(--green-soft);
+}
+
+.spot-note {
+    font-size: 0.84rem;
+    line-height: 1.48;
+    color: rgba(245, 247, 251, 0.84);
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(6, 13, 24, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.spot-card.is-found .spot-note {
+    border-color: rgba(242, 211, 43, 0.22);
+    background: rgba(242, 211, 43, 0.07);
+}
+
+.spot-foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: var(--muted);
+    padding-top: 4px;
+}
+
+/* Leaderboard */
+.panel {
+    padding: 20px;
+    border-radius: 22px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.notice-box {
+    padding: 13px 15px;
+    border-radius: 14px;
+    background: rgba(242, 211, 43, 0.08);
+    border: 1px solid rgba(242, 211, 43, 0.24);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: rgba(245, 247, 251, 0.88);
+    margin-bottom: 14px;
+}
+
+.lb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lb-row {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(6, 13, 24, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lb-row.is-me {
+    border-color: var(--border-accent);
+    background: rgba(242, 211, 43, 0.09);
+}
+
+.lb-pos {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    color: var(--muted);
+}
+
+.lb-row:nth-child(1) .lb-pos { color: #facc15; }
+.lb-row:nth-child(2) .lb-pos { color: #cbd5e1; }
+.lb-row:nth-child(3) .lb-pos { color: #f59e0b; }
+
+.lb-name {
+    font-weight: 600;
+    font-size: 0.94rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lb-sub {
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.lb-score {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--accent);
+}
+
+/* Badges grid */
+.badges-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.badge-card {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(6, 13, 24, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0.52;
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.badge-card.is-unlocked {
+    opacity: 1;
+    border-color: var(--border-accent);
+    background: rgba(242, 211, 43, 0.07);
+}
+
+.badge-ico {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    font-size: 1.45rem;
+    background: rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+.badge-card.is-unlocked .badge-ico {
+    background: var(--accent-soft);
+}
+
+.badge-title {
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-bottom: 2px;
+}
+
+.badge-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(3, 7, 14, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.modal-backdrop.is-open {
+    display: flex;
+}
+
+.modal {
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    border-radius: 24px;
+    background: var(--card-solid);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal h2 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 1.3rem;
+}
+
+.modal p {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.field input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(6, 13, 24, 0.85);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+.field input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.modal-actions .pill-btn {
+    justify-content: center;
+    padding: 12px 16px;
+}
+
+.status-msg {
+    font-size: 0.84rem;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    display: none;
+}
+
+.status-msg.is-visible { display: block; }
+.status-msg.is-error { background: rgba(255, 107, 107, 0.14); color: #ffb4b4; border: 1px solid rgba(255, 107, 107, 0.3); }
+.status-msg.is-ok { background: var(--green-soft); color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.35); }
+
+.qr-video {
+    width: 100%;
+    border-radius: 14px;
+    background: #000;
+    display: none;
+    max-height: 240px;
+    object-fit: cover;
+}
+
+.qr-video.is-active {
+    display: block;
+}
+
+.demo-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.demo-chip {
+    appearance: none;
+    border: 1px dashed rgba(242, 211, 43, 0.38);
+    background: rgba(242, 211, 43, 0.08);
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.locked-screen {
+    margin: 28px auto;
+    max-width: 460px;
+    padding: 32px 26px;
+    border-radius: 26px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
+.locked-screen.is-active {
+    display: flex;
+}
+
+.locked-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    font-size: 1.8rem;
+    background: var(--accent-soft);
+    border: 1px solid var(--border-accent);
+}
+
+.locked-screen h1 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+    font-size: 1.65rem;
+}
+
+.locked-screen h1 span { color: var(--accent); }
+
+.locked-screen p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.is-hidden { display: none !important; }
+
+@media (max-width: 720px) {
+    .stats-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .spots-grid,
+    .badges-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .map-shell {
+        height: 300px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient" aria-hidden="true"></div>
+
+<main class="wrap">
+    <div class="topbar">
+        <a href="../index.html" class="back-btn">← Zpět na kiggs.cz</a>
+        <div class="topbar-actions" id="game-top-actions">
+            <button type="button" class="pill-btn" id="nick-btn">👤 <span id="nick-label">Nastavit přezdívku</span></button>
+            <button type="button" class="pill-btn primary" id="open-scan-btn">📷 Naskenovat / Zadat kód</button>
+        </div>
+    </div>
+
+    <!-- LOCKED TEASER SCREEN (dokud admin hru nespustí) -->
+    <section class="locked-screen" id="locked-screen">
+        <div class="locked-icon" aria-hidden="true">🔒</div>
+        <h1>Paw <span>Trail</span></h1>
+        <p style="font-weight:600;color:var(--accent);font-size:0.82rem;letter-spacing:0.12em;text-transform:uppercase;">Kiggs × Pobar</p>
+        <p id="locked-message">Paw Trail (Kiggs × Pobar) startuje už brzy 🐾</p>
+        <a href="../index.html" class="pill-btn primary" style="margin-top:6px;">← Zpět na kiggs.cz</a>
+    </section>
+
+    <div id="game-shell" style="display:flex;flex-direction:column;gap:18px;">
+    <section class="hero">
+        <div class="hero-top">
+            <div class="hero-brand">
+                <img class="hero-avatar" src="../images/app-icon-192.png" alt="Paw Trail" width="58" height="58">
+                <div>
+                    <h1>Paw <span>Trail</span></h1>
+                    <div class="hero-sub">Kiggs × Pobar • Najdi naše nálepky na rozhlednách (QR / NFC) 🐾</div>
+                </div>
+            </div>
+            <span class="mode-badge" id="mode-badge">Lokální demo režim</span>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-head">
+                <span>Postup sbírky</span>
+                <strong id="progress-text">0 / 0 rozhleden</strong>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="stats-strip">
+            <div class="stat-tile">
+                <div class="lbl">Nalezeno</div>
+                <div class="val accent" id="stat-found">0</div>
+            </div>
+            <div class="stat-tile">
+                <div class="lbl">Ověřeno GPS</div>
+                <div class="val green" id="stat-gps">0</div>
+            </div>
+            <div class="stat-tile">
+                <div class="lbl">FTF (První!)</div>
+                <div class="val accent" id="stat-ftf">0</div>
+            </div>
+            <div class="stat-tile">
+                <div class="lbl">Výškové metry</div>
+                <div class="val" id="stat-elev">0 m</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="tabs" role="tablist">
+        <button type="button" class="tab-btn is-active" data-tab="spots" role="tab" aria-selected="true">🗺️ Rozhledny</button>
+        <button type="button" class="tab-btn" data-tab="leaderboard" role="tab" aria-selected="false">🏆 Žebříček</button>
+        <button type="button" class="tab-btn" data-tab="badges" role="tab" aria-selected="false">🎖️ Odznaky</button>
+    </div>
+
+    <!-- VIEW 1: MAP & SPOTS -->
+    <section class="view is-active" id="view-spots">
+        <div class="map-shell">
+            <div id="map" aria-label="Mapa rozhleden"></div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <button type="button" class="filter-chip is-active" data-filter="all">Všechny</button>
+                <button type="button" class="filter-chip" data-filter="found">Nalezené</button>
+                <button type="button" class="filter-chip" data-filter="missing">Chybějící</button>
+            </div>
+            <button type="button" class="filter-chip" id="locate-me-btn">📍 Zobrazit vzdálenosti</button>
+        </div>
+
+        <div class="spots-grid" id="spots-grid"></div>
+    </section>
+
+    <!-- VIEW 2: LEADERBOARD -->
+    <section class="view" id="view-leaderboard">
+        <div class="panel">
+            <div class="notice-box" id="lb-demo-notice" style="display:none;">
+                <strong>Lokální demo režim:</strong> Žebříček zatím ukazuje jen tvoje lokální nálezy v tomto zařízení. Po připojení online serveru se automaticky přepne na živý žebříček všech hráčů a FTF.
+            </div>
+            <div class="lb-list" id="lb-list"></div>
+        </div>
+    </section>
+
+    <!-- VIEW 3: BADGES -->
+    <section class="view" id="view-badges">
+        <div class="panel">
+            <div class="badges-grid" id="badges-grid"></div>
+        </div>
+    </section>
+    </div>
+</main>
+
+<!-- MODAL: CLAIM / SCAN / NICKNAME -->
+<div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+        <h2 id="modal-title">Odemknout rozhlednu</h2>
+        <p id="modal-desc">Naskenuj QR kód z nálepky, přilož NFC čip nebo zadej kód ručně.</p>
+
+        <video class="qr-video" id="qr-video" playsinline muted></video>
+
+        <div class="field" id="field-nick">
+            <label for="input-nick">Tvoje přezdívka do žebříčku</label>
+            <input id="input-nick" type="text" maxlength="24" placeholder="např. Vlk_Brno" autocomplete="nickname">
+        </div>
+
+        <div class="field" id="field-code">
+            <label for="input-code">Tajný kód z nálepky</label>
+            <input id="input-code" type="text" maxlength="64" placeholder="kód z QR / NFC" autocomplete="off">
+        </div>
+
+        <div class="demo-codes" id="demo-codes" style="display:none;"></div>
+        <div class="status-msg" id="modal-status"></div>
+
+        <div class="modal-actions" id="modal-actions"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="config.js"></script>
+<script>
+const CFG = window.KIGGS_LOV_CONFIG || { DEMO_SPOTS: [], GPS_RADIUS_METERS: 300 };
+const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+
+const STORE_PLAYER_ID = "kiggs_lov_player_id";
+const STORE_NICK = "kiggs_lov_nickname";
+const STORE_LOCAL_CLAIMS = "kiggs_lov_local_claims";
+
+function getStorage(key, fallback) {
+    try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
+}
+function setStorage(key, val) {
+    try { localStorage.setItem(key, val); } catch {}
+}
+
+function getOrCreatePlayerId() {
+    let id = getStorage(STORE_PLAYER_ID, "");
+    if (!id || id.length < 8) {
+        const bytes = new Uint8Array(12);
+        crypto.getRandomValues(bytes);
+        id = "p_" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+        setStorage(STORE_PLAYER_ID, id);
+    }
+    return id;
+}
+
+const playerId = getOrCreatePlayerId();
+let nickname = getStorage(STORE_NICK, "");
+let spots = [];
+let leaderboard = [];
+let currentFilter = "all";
+let userCoords = null;
+let map = null;
+let markersById = {};
+let qrStream = null;
+let qrScanLoop = null;
+
+/* Crypto SHA-256 helper (funguje i přes file:///) */
+async function sha256Hex(str) {
+    return window.kiggsSha256(str);
+}
+
+/* Haversine distance in meters */
+function haversineMeters(lat1, lng1, lat2, lng2) {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return Math.round(6371000 * 2 * Math.asin(Math.min(1, Math.sqrt(a))));
+}
+
+function formatDistance(m) {
+    if (m == null) return "";
+    return m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`;
+}
+
+function formatDate(iso) {
+    if (!iso) return "";
+    try {
+        return new Date(iso).toLocaleDateString("cs-CZ", { day: "numeric", month: "short", year: "numeric" });
+    } catch { return ""; }
+}
+
+function escapeHtml(str) {
+    return String(str ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[ch]));
+}
+
+/* Supabase REST RPC helper (bez nutnosti načítat těžké SDK) */
+async function supabaseRpc(fnName, params) {
+    const url = `${CFG.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/${fnName}`;
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "apikey": CFG.SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${CFG.SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify(params || {})
+    });
+    if (!res.ok) throw new Error(`Supabase RPC error ${res.status}`);
+    return res.json();
+}
+
+/* Local demo storage */
+function readLocalClaims() {
+    try { return JSON.parse(getStorage(STORE_LOCAL_CLAIMS, "{}")); } catch { return {}; }
+}
+function writeLocalClaims(obj) {
+    setStorage(STORE_LOCAL_CLAIMS, JSON.stringify(obj));
+}
+
+/* Data loading */
+async function loadData() {
+    const modeBadge = document.getElementById("mode-badge");
+    const lbNotice = document.getElementById("lb-demo-notice");
+
+    if (IS_ONLINE) {
+        modeBadge.textContent = "Online • Žebříček + FTF";
+        modeBadge.classList.add("is-online");
+        lbNotice.style.display = "none";
+        try {
+            const [sData, lbData] = await Promise.all([
+                supabaseRpc("get_public_spots", { p_player_id: playerId }),
+                supabaseRpc("get_leaderboard", { p_limit: 30 })
+            ]);
+            spots = Array.isArray(sData) ? sData : [];
+            leaderboard = Array.isArray(lbData) ? lbData : [];
+        } catch (err) {
+            modeBadge.textContent = "Offline / Chyba připojení";
+            modeBadge.classList.remove("is-online");
+        }
+    } else {
+        modeBadge.textContent = "Lokální demo režim";
+        lbNotice.style.display = "block";
+        const claims = readLocalClaims();
+        spots = (CFG.DEMO_SPOTS || []).map((s) => {
+            const c = claims[s.id];
+            return {
+                id: s.id,
+                name: s.name,
+                region: s.region,
+                elevation: s.elevation,
+                lat: s.lat,
+                lng: s.lng,
+                hint: s.hint,
+                finders_count: c ? 1 : 0,
+                ftf_nickname: c ? c.nickname : null,
+                ftf_at: c ? c.claimed_at : null,
+                my_claimed: Boolean(c),
+                my_gps_verified: Boolean(c && c.gps_verified),
+                my_is_ftf: Boolean(c && c.is_ftf),
+                my_claimed_at: c ? c.claimed_at : null,
+                secret_note: c ? s.secret_note : null,
+                code_hash: s.code_hash
+            };
+        });
+
+        const myCount = spots.filter((s) => s.my_claimed).length;
+        const myGps = spots.filter((s) => s.my_gps_verified).length;
+        const myFtf = spots.filter((s) => s.my_is_ftf).length;
+        leaderboard = myCount > 0 ? [{
+            player_id: playerId,
+            nickname: nickname || "Ty (demo)",
+            spots_count: myCount,
+            gps_count: myGps,
+            ftf_count: myFtf
+        }] : [];
+    }
+
+    renderAll();
+}
+
+/* Map initialization */
+function initMap() {
+    if (typeof L === "undefined" || map) return;
+    map = L.map("map", { zoomControl: true, attributionControl: true }).setView([49.25, 16.9], 8);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
+    }).addTo(map);
+}
+
+function renderMapMarkers() {
+    if (!map) return;
+    Object.values(markersById).forEach((m) => m.remove());
+    markersById = {};
+
+    const bounds = [];
+    spots.forEach((s) => {
+        const icon = L.divIcon({
+            className: "",
+            html: `<div class="map-pin ${s.my_claimed ? "is-found" : ""}">${s.my_claimed ? "🐾" : "?"}</div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+        });
+
+        const popupHtml = `
+            <strong>${escapeHtml(s.name)}</strong><br>
+            <span style="opacity:.72">${escapeHtml(s.region)} • ${s.elevation} m n. m.</span><br>
+            ${s.my_claimed
+                ? `<span style="color:#f2d32b;font-weight:600">✓ Nalezeno${s.my_gps_verified ? " • Ověřeno GPS" : ""}</span>`
+                : `<span style="opacity:.75">🔒 Zamčeno — naskenuj nálepku na místě</span>`
+            }
+            ${s.ftf_nickname ? `<br><span style="color:#f2d32b">🥇 FTF: ${escapeHtml(s.ftf_nickname)}</span>` : ""}
+        `;
+
+        const marker = L.marker([s.lat, s.lng], { icon }).addTo(map).bindPopup(popupHtml);
+        markersById[s.id] = marker;
+        bounds.push([s.lat, s.lng]);
+    });
+
+    if (bounds.length > 0 && !map._kiggsFitted) {
+        map.fitBounds(bounds, { padding: [36, 36], maxZoom: 11 });
+        map._kiggsFitted = true;
+    }
+}
+
+/* Render stats, spots, leaderboard, badges */
+function renderAll() {
+    document.getElementById("nick-label").textContent = nickname || "Nastavit přezdívku";
+
+    const total = spots.length;
+    const foundList = spots.filter((s) => s.my_claimed);
+    const foundCount = foundList.length;
+    const gpsCount = foundList.filter((s) => s.my_gps_verified).length;
+    const ftfCount = foundList.filter((s) => s.my_is_ftf).length;
+    const elevSum = foundList.reduce((acc, s) => acc + (Number(s.elevation) || 0), 0);
+
+    document.getElementById("progress-text").textContent = `${foundCount} / ${total} rozhleden`;
+    document.getElementById("progress-fill").style.width = total ? `${Math.round((foundCount / total) * 100)}%` : "0%";
+    document.getElementById("stat-found").textContent = foundCount;
+    document.getElementById("stat-gps").textContent = gpsCount;
+    document.getElementById("stat-ftf").textContent = ftfCount;
+    document.getElementById("stat-elev").textContent = `${elevSum} m`;
+
+    renderMapMarkers();
+    renderSpots();
+    renderLeaderboard();
+    renderBadges(foundCount, gpsCount, ftfCount, total, elevSum);
+}
+
+function renderSpots() {
+    const grid = document.getElementById("spots-grid");
+    const filtered = spots.filter((s) => {
+        if (currentFilter === "found") return s.my_claimed;
+        if (currentFilter === "missing") return !s.my_claimed;
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;color:var(--muted);">V tomto filtru zatím žádná rozhledna není.</div>`;
+        return;
+    }
+
+    grid.innerHTML = filtered.map((s) => {
+        const dist = userCoords ? haversineMeters(userCoords.lat, userCoords.lng, s.lat, s.lng) : null;
+        return `
+        <article class="spot-card ${s.my_claimed ? "is-found" : ""}" data-spot-id="${escapeHtml(s.id)}">
+            <div class="spot-head">
+                <div>
+                    <div class="spot-name">${escapeHtml(s.name)}</div>
+                    <div class="spot-region">${escapeHtml(s.region)} • ${s.elevation} m n. m.${dist != null ? ` • ${formatDistance(dist)}` : ""}</div>
+                </div>
+                <div class="spot-stamp" aria-hidden="true">${s.my_claimed ? "🐾" : "🔒"}</div>
+            </div>
+
+            <div class="spot-badges">
+                ${s.my_claimed ? `<span class="tag gold">✓ Nalezeno</span>` : `<span class="tag">Čeká na objevení</span>`}
+                ${s.my_gps_verified ? `<span class="tag gps">📍 Ověřeno GPS</span>` : ""}
+                ${s.my_is_ftf ? `<span class="tag gold">🥇 Tvůj FTF</span>` : (s.ftf_nickname ? `<span class="tag">🥇 FTF: ${escapeHtml(s.ftf_nickname)}</span>` : `<span class="tag gold">✨ FTF volné!</span>`)}
+            </div>
+
+            <div class="spot-note">
+                ${s.my_claimed
+                    ? escapeHtml(s.secret_note || "Rozhledna úspěšně odemčena!")
+                    : `💡 ${escapeHtml(s.hint || "Hledej nálepku KIGGS přímo u rozhledny.")}`
+                }
+            </div>
+
+            <div class="spot-foot">
+                <span>Nálezců celkem: ${s.finders_count || 0}</span>
+                <span>${s.my_claimed_at ? formatDate(s.my_claimed_at) : "Klikni pro zobrazení na mapě"}</span>
+            </div>
+        </article>`;
+    }).join("");
+
+    grid.querySelectorAll(".spot-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            const id = card.dataset.spotId;
+            const spot = spots.find((x) => x.id === id);
+            if (spot && map && markersById[id]) {
+                map.flyTo([spot.lat, spot.lng], 13, { duration: 0.7 });
+                markersById[id].openPopup();
+                document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        });
+    });
+}
+
+function renderLeaderboard() {
+    const list = document.getElementById("lb-list");
+    if (!leaderboard.length) {
+        list.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);">Zatím tu nikdo není — naskenuj první rozhlednu a získej FTF! 🐾</div>`;
+        return;
+    }
+
+    list.innerHTML = leaderboard.map((row, i) => {
+        const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+        const isMe = row.player_id === playerId;
+        return `
+        <div class="lb-row ${isMe ? "is-me" : ""}">
+            <div class="lb-pos">${medal}</div>
+            <div>
+                <div class="lb-name">${escapeHtml(row.nickname)}${isMe ? " (ty)" : ""}</div>
+                <div class="lb-sub">FTF: ${row.ftf_count || 0}× • Ověřeno GPS: ${row.gps_count || 0}×</div>
+            </div>
+            <div class="lb-score">${row.spots_count} 🐾</div>
+        </div>`;
+    }).join("");
+}
+
+function renderBadges(found, gps, ftf, total, elev) {
+    const defs = [
+        { ico: "🐾", title: "První tlapka", desc: "Najdi svou první rozhlednu s nálepkou KIGGS.", ok: found >= 1 },
+        { ico: "📍", title: "Poctivý stopař", desc: "Získej alespoň jednou zlatý odznak Ověřeno GPS.", ok: gps >= 1 },
+        { ico: "🥇", title: "První na vrcholu (FTF)", desc: "Buď úplně první nálezce některé z rozhleden.", ok: ftf >= 1 },
+        { ico: "⛰️", title: "Horský vlk", desc: "Nasbírej rozhledny s celkovou výškou alespoň 1 000 m.", ok: elev >= 1000 },
+        { ico: "🧭", title: "Smečka v pohybu", desc: "Odemkni alespoň 3 různé rozhledny.", ok: found >= 3 },
+        { ico: "👑", title: "Král obzorů", desc: "Najdi všechny dostupné rozhledny v kolekci.", ok: total > 0 && found >= total }
+    ];
+
+    document.getElementById("badges-grid").innerHTML = defs.map((b) => `
+        <div class="badge-card ${b.ok ? "is-unlocked" : ""}">
+            <div class="badge-ico" aria-hidden="true">${b.ico}</div>
+            <div>
+                <div class="badge-title">${b.title}</div>
+                <div class="badge-desc">${b.desc}</div>
+            </div>
+        </div>
+    `).join("");
+}
+
+/* Modal & Claim Flow */
+const backdrop = document.getElementById("modal-backdrop");
+const modalTitle = document.getElementById("modal-title");
+const modalDesc = document.getElementById("modal-desc");
+const fieldNick = document.getElementById("field-nick");
+const fieldCode = document.getElementById("field-code");
+const inputNick = document.getElementById("input-nick");
+const inputCode = document.getElementById("input-code");
+const modalStatus = document.getElementById("modal-status");
+const modalActions = document.getElementById("modal-actions");
+const demoCodesEl = document.getElementById("demo-codes");
+const qrVideo = document.getElementById("qr-video");
+
+function setModalStatus(msg, type) {
+    if (!msg) {
+        modalStatus.className = "status-msg";
+        modalStatus.textContent = "";
+        return;
+    }
+    modalStatus.className = `status-msg is-visible ${type ? "is-" + type : ""}`;
+    modalStatus.textContent = msg;
+}
+
+function stopQrScanner() {
+    if (qrScanLoop) cancelAnimationFrame(qrScanLoop);
+    qrScanLoop = null;
+    if (qrStream) {
+        qrStream.getTracks().forEach((t) => t.stop());
+        qrStream = null;
+    }
+    qrVideo.classList.remove("is-active");
+    qrVideo.srcObject = null;
+}
+
+function closeModal() {
+    stopQrScanner();
+    backdrop.classList.remove("is-open");
+}
+
+backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeModal();
+});
+
+async function startCameraQr() {
+    if (!("BarcodeDetector" in window)) {
+        setModalStatus("Tvůj prohlížeč nepodporuje přímou čtečku QR — naskenuj nálepku běžným foťákem v mobilu nebo zadej kód ručně.", "error");
+        return;
+    }
+    try {
+        const detector = new BarcodeDetector({ formats: ["qr_code"] });
+        qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        qrVideo.srcObject = qrStream;
+        await qrVideo.play();
+        qrVideo.classList.add("is-active");
+        setModalStatus("Namiř kameru na QR kód nálepky…");
+
+        const scan = async () => {
+            if (!qrStream) return;
+            try {
+                const codes = await detector.detect(qrVideo);
+                if (codes.length > 0) {
+                    const raw = codes[0].rawValue || "";
+                    let extracted = raw;
+                    try {
+                        const u = new URL(raw);
+                        if (u.searchParams.get("k")) extracted = u.searchParams.get("k");
+                    } catch {}
+                    stopQrScanner();
+                    inputCode.value = extracted;
+                    setModalStatus("QR kód načten! Klikni na odemčení.", "ok");
+                    return;
+                }
+            } catch {}
+            qrScanLoop = requestAnimationFrame(scan);
+        };
+        qrScanLoop = requestAnimationFrame(scan);
+    } catch {
+        setModalStatus("Nepodařilo se zapnout kameru. Naskenuj QR kód přímo foťákem telefonu.", "error");
+    }
+}
+
+function requestGpsCoords() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 9000, maximumAge: 15000 }
+        );
+    });
+}
+
+async function performClaim(rawCode, withGps) {
+    const cleanNick = inputNick.value.trim();
+    const cleanCode = (rawCode || inputCode.value || "").trim();
+
+    if (cleanNick.length < 2) {
+        setModalStatus("Zadej prosím přezdívku (alespoň 2 znaky).", "error");
+        return;
+    }
+    if (!cleanCode) {
+        setModalStatus("Zadej tajný kód z nálepky.", "error");
+        return;
+    }
+
+    nickname = cleanNick;
+    setStorage(STORE_NICK, nickname);
+
+    let coords = null;
+    if (withGps) {
+        setModalStatus("Zjišťuji přesnou GPS polohu…");
+        coords = await requestGpsCoords();
+        if (coords) userCoords = coords;
+    }
+
+    setModalStatus("Ověřuji kód rozhledny…");
+    const codeHash = await sha256Hex(cleanCode);
+
+    let result;
+    if (IS_ONLINE) {
+        try {
+            result = await supabaseRpc("claim_spot", {
+                p_code_hash: codeHash,
+                p_player_id: playerId,
+                p_nickname: nickname,
+                p_lat: coords ? coords.lat : null,
+                p_lng: coords ? coords.lng : null,
+                p_radius_m: CFG.GPS_RADIUS_METERS || 300
+            });
+        } catch {
+            setModalStatus("Chyba spojení se serverem. Zkus to prosím za chvíli.", "error");
+            return;
+        }
+    } else {
+        const match = (CFG.DEMO_SPOTS || []).find((s) => s.code_hash === codeHash);
+        if (!match) {
+            result = { ok: false, error: "Tento kód nepatří žádné známé rozhledně." };
+        } else {
+            const claims = readLocalClaims();
+            const dist = coords ? haversineMeters(coords.lat, coords.lng, match.lat, match.lng) : null;
+            const gpsOk = dist != null && dist <= (CFG.GPS_RADIUS_METERS || 300);
+            const prev = claims[match.id];
+
+            if (prev) {
+                const upgraded = !prev.gps_verified && gpsOk;
+                if (upgraded) {
+                    prev.gps_verified = true;
+                    prev.distance_m = dist;
+                    claims[match.id] = prev;
+                    writeLocalClaims(claims);
+                }
+                result = {
+                    ok: true,
+                    already_claimed: true,
+                    upgraded_gps: upgraded,
+                    is_ftf: prev.is_ftf,
+                    gps_verified: prev.gps_verified,
+                    distance_m: dist,
+                    spot: match
+                };
+            } else {
+                claims[match.id] = {
+                    nickname,
+                    gps_verified: gpsOk,
+                    distance_m: dist,
+                    is_ftf: true,
+                    claimed_at: new Date().toISOString()
+                };
+                writeLocalClaims(claims);
+                result = {
+                    ok: true,
+                    already_claimed: false,
+                    upgraded_gps: false,
+                    is_ftf: true,
+                    gps_verified: gpsOk,
+                    distance_m: dist,
+                    spot: match
+                };
+            }
+        }
+    }
+
+    if (!result || !result.ok) {
+        setModalStatus((result && result.error) || "Neplatný kód.", "error");
+        return;
+    }
+
+    if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
+    await loadData();
+
+    const s = result.spot;
+    const extras = [];
+    if (result.is_ftf && !result.already_claimed) extras.push("🥇 První nálezce (FTF)!");
+    if (result.gps_verified) extras.push(`📍 Ověřeno GPS${result.distance_m != null ? ` (${formatDistance(result.distance_m)})` : ""}`);
+    else if (withGps && result.distance_m != null) extras.push(`GPS mimo okruh (${formatDistance(result.distance_m)} od rozhledny) — odemčeno bez GPS odznaku.`);
+
+    modalTitle.textContent = result.already_claimed ? `Už máš: ${s.name}` : `🎉 Odemčeno: ${s.name}!`;
+    modalDesc.textContent = s.secret_note || "Skvělá práce, rozhledna je zapsaná ve tvém pasu!";
+    fieldNick.style.display = "none";
+    fieldCode.style.display = "none";
+    demoCodesEl.style.display = "none";
+    setModalStatus(extras.join(" • ") || "Rozhledna zapsána do tvého sběratelského pasu 🐾", "ok");
+    modalActions.innerHTML = `<button type="button" class="pill-btn primary" id="done-btn">Zobrazit na mapě</button>`;
+    document.getElementById("done-btn").addEventListener("click", () => {
+        closeModal();
+        if (map && markersById[s.id]) {
+            const foundSpot = spots.find((x) => x.id === s.id);
+            if (foundSpot) map.flyTo([foundSpot.lat, foundSpot.lng], 13, { duration: 0.7 });
+            markersById[s.id].openPopup();
+        }
+    });
+}
+
+function openClaimModal(prefilledCode) {
+    stopQrScanner();
+    fieldNick.style.display = "flex";
+    fieldCode.style.display = prefilledCode ? "none" : "flex";
+    inputNick.value = nickname;
+    inputCode.value = prefilledCode || "";
+    setModalStatus("");
+
+    if (prefilledCode) {
+        modalTitle.textContent = "🐾 Nálepka nalezena!";
+        modalDesc.textContent = "Chceš ověřit polohu přes GPS pro zlatý odznak „Ověřeno GPS“, nebo odemknout rovnou?";
+        demoCodesEl.style.display = "none";
+    } else {
+        modalTitle.textContent = "Odemknout rozhlednu";
+        modalDesc.textContent = "Naskenuj QR kód z nálepky nebo zadej kód ručně.";
+        if (!IS_ONLINE) {
+            demoCodesEl.style.display = "flex";
+            demoCodesEl.innerHTML = `
+                <button type="button" class="demo-chip" data-demo="kiggs-babi-demo1">Demo: Babí lom</button>
+                <button type="button" class="demo-chip" data-demo="kiggs-holedna-demo2">Demo: Holedná</button>
+            `;
+            demoCodesEl.querySelectorAll(".demo-chip").forEach((c) => {
+                c.addEventListener("click", () => { inputCode.value = c.dataset.demo; });
+            });
+        } else {
+            demoCodesEl.style.display = "none";
+        }
+    }
+
+    modalActions.innerHTML = `
+        <button type="button" class="pill-btn primary" id="btn-claim-gps">📍 Odemknout + Ověřit GPS</button>
+        <button type="button" class="pill-btn" id="btn-claim-plain">Odemknout bez GPS</button>
+        ${!prefilledCode ? `<button type="button" class="pill-btn" id="btn-open-cam">📷 Skenovat QR kamerou</button>` : ""}
+        <button type="button" class="pill-btn" id="btn-close-modal" style="opacity:.7">Zavřít</button>
+    `;
+
+    document.getElementById("btn-claim-gps").addEventListener("click", () => performClaim(prefilledCode, true));
+    document.getElementById("btn-claim-plain").addEventListener("click", () => performClaim(prefilledCode, false));
+    const camBtn = document.getElementById("btn-open-cam");
+    if (camBtn) camBtn.addEventListener("click", startCameraQr);
+    document.getElementById("btn-close-modal").addEventListener("click", closeModal);
+
+    backdrop.classList.add("is-open");
+}
+
+function openNickModal() {
+    stopQrScanner();
+    modalTitle.textContent = "Tvoje přezdívka";
+    modalDesc.textContent = "Pod touto přezdívkou se zobrazíš v žebříčku a jako FTF nálezce.";
+    fieldNick.style.display = "flex";
+    fieldCode.style.display = "none";
+    demoCodesEl.style.display = "none";
+    inputNick.value = nickname;
+    setModalStatus("");
+    modalActions.innerHTML = `
+        <button type="button" class="pill-btn primary" id="save-nick-btn">Uložit přezdívku</button>
+        <button type="button" class="pill-btn" id="cancel-nick-btn">Zavřít</button>
+    `;
+    document.getElementById("save-nick-btn").addEventListener("click", () => {
+        const val = inputNick.value.trim();
+        if (val.length < 2) {
+            setModalStatus("Přezdívka musí mít alespoň 2 znaky.", "error");
+            return;
+        }
+        nickname = val;
+        setStorage(STORE_NICK, nickname);
+        renderAll();
+        closeModal();
+    });
+    document.getElementById("cancel-nick-btn").addEventListener("click", closeModal);
+    backdrop.classList.add("is-open");
+}
+
+/* Events */
+document.getElementById("open-scan-btn").addEventListener("click", () => openClaimModal(""));
+document.getElementById("nick-btn").addEventListener("click", openNickModal);
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+            b.classList.toggle("is-active", b === btn);
+            b.setAttribute("aria-selected", String(b === btn));
+        });
+        document.querySelectorAll(".view").forEach((v) => v.classList.toggle("is-active", v.id === `view-${target}`));
+        if (target === "spots" && map) setTimeout(() => map.invalidateSize(), 60);
+    });
+});
+
+document.querySelectorAll(".filter-chip[data-filter]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+        currentFilter = chip.dataset.filter;
+        document.querySelectorAll(".filter-chip[data-filter]").forEach((c) => c.classList.toggle("is-active", c === chip));
+        renderSpots();
+    });
+});
+
+document.getElementById("locate-me-btn").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    btn.textContent = "📍 Hledám polohu…";
+    const coords = await requestGpsCoords();
+    if (coords) {
+        userCoords = coords;
+        btn.textContent = "📍 Vzdálenosti zapnuty";
+        btn.classList.add("is-active");
+        renderSpots();
+    } else {
+        btn.textContent = "📍 GPS nedostupné";
+    }
+});
+
+/* Boot & auto-detect lock status + ?k=CODE from QR / NFC */
+(async () => {
+    let isEnabled = Boolean(CFG.DEFAULT_TRAIL_ENABLED);
+    let teaserText = CFG.DEFAULT_TEASER_MESSAGE || "Paw Trail (Kiggs × Pobar) startuje už brzy 🐾";
+
+    if (IS_ONLINE) {
+        try {
+            const st = await supabaseRpc("get_trail_status", {});
+            isEnabled = Boolean(st && st.enabled);
+            if (st && st.teaser_message) teaserText = st.teaser_message;
+        } catch {
+            isEnabled = false;
+        }
+    } else {
+        const localFlag = getStorage("kiggs_trail_local_enabled", "");
+        if (localFlag === "1") isEnabled = true;
+        else if (localFlag === "0") isEnabled = false;
+        const localTeaser = getStorage("kiggs_trail_local_teaser", "");
+        if (localTeaser) teaserText = localTeaser;
+    }
+
+    if (!isEnabled) {
+        document.getElementById("game-shell").classList.add("is-hidden");
+        document.getElementById("game-top-actions").classList.add("is-hidden");
+        document.getElementById("locked-message").textContent = teaserText;
+        document.getElementById("locked-screen").classList.add("is-active");
+        return;
+    }
+
+    initMap();
+    await loadData();
+
+    const params = new URLSearchParams(window.location.search);
+    const scannedCode = params.get("k");
+    if (scannedCode) {
+        // Smaž tajný kód z adresního řádku, aby ho nikdo omylem nesdílel ve screenshotu
+        try {
+            params.delete("k");
+            const cleanUrl = window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
+            window.history.replaceState({}, "", cleanUrl);
+        } catch {}
+        openClaimModal(scannedCode);
+    }
+})();
+</script>
+
+</body>
+</html>
