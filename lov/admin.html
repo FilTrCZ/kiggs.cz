@@ -708,10 +708,14 @@ async function loadDashboard() {
     document.getElementById("admin-counters").textContent = `${info.spots_count} rozhleden • ${info.claims_count} nálezů`;
     renderTrailStatusUI(info.trail_enabled, info.teaser_message);
 
+    let playersErr = "";
     const [spots, claims, players] = await Promise.all([
         sbAdminRpc("admin_list_spots"),
         sbAdminRpc("admin_list_claims", { p_limit: 25 }),
-        sbAdminRpc("admin_list_players").catch(() => null)
+        sbAdminRpc("admin_list_players").catch((err) => {
+            playersErr = (err && err.message) || "Chyba načítání seznamu hráčů.";
+            return null;
+        })
     ]);
     loadedSpots = Array.isArray(spots) ? spots : [];
     playersRpcReady = Array.isArray(players);
@@ -719,7 +723,9 @@ async function loadDashboard() {
     renderGrantPlayerOptions();
     renderGrantSpotOptions();
     if (!playersRpcReady) {
-        showMsg("grant-msg", "Pro ruční započítávání ještě chybí aktualizovat databázové funkce.", "warn");
+        showMsg("grant-msg", `Seznam hráčů se nepodařilo načíst: ${playersErr}`, "warn");
+    } else if (document.getElementById("grant-msg").classList.contains("warn")) {
+        showMsg("grant-msg", "");
     }
 
     const spotsEl = document.getElementById("spots-list");
