@@ -511,6 +511,44 @@ h2 { font-size: 1.08rem; }
             <div class="list" id="spots-list"></div>
         </section>
 
+        <!-- MANUAL CLAIM GRANT -->
+        <section class="panel" id="manual-claim-panel">
+            <div>
+                <h2>🏅 Ručně započítat zdolání rozhledny</h2>
+                <p class="sub" style="margin-top:4px;">Když byla nálepka poškozená, nešel signál nebo chceš připsat nález podle fotky.</p>
+            </div>
+
+            <div class="field">
+                <label for="grant-player-filter">Hledat hráče (volitelné)</label>
+                <input id="grant-player-filter" type="text" placeholder="Filtr podle přezdívky nebo e-mailu…">
+            </div>
+
+            <div class="row2">
+                <div class="field">
+                    <label for="grant-player">Hráč</label>
+                    <select id="grant-player"></select>
+                </div>
+                <div class="field">
+                    <label for="grant-spot">Rozhledna</label>
+                    <select id="grant-spot"></select>
+                </div>
+            </div>
+
+            <div class="row2">
+                <label class="check-row">
+                    <input id="grant-gps" type="checkbox">
+                    <span>📍 Označit jako ověřené GPS (např. podle fotky)</span>
+                </label>
+                <label class="check-row">
+                    <input id="grant-ftf" type="checkbox" checked>
+                    <span>🥇 Započítat FTF, pokud je na rozhledně první</span>
+                </label>
+            </div>
+
+            <div class="msg" id="grant-msg"></div>
+            <button type="button" class="btn primary" id="grant-claim-btn">✓ Započítat zdolání hráči</button>
+        </section>
+
         <!-- RECENT CLAIMS -->
         <section class="panel">
             <h2>🐾 Poslední nálezy hráčů</h2>
@@ -538,6 +576,8 @@ let lastGeneratedUrl = "";
 let lastGeneratedSlug = "rozhledna";
 let lastSpotMeta = { name: "Paw Trail", elev: 0 };
 let loadedSpots = [];
+let loadedPlayers = [];
+let playersRpcReady = true;
 let editingSpotId = null;
 
 function showMsg(elId, text, type) {
@@ -583,6 +623,55 @@ function renderTrailStatusUI(enabled, teaser) {
     if (teaser != null) input.value = teaser;
 }
 
+function renderGrantPlayerOptions() {
+    const sel = document.getElementById("grant-player");
+    const filter = (document.getElementById("grant-player-filter").value || "").trim().toLowerCase();
+    const prev = sel.value;
+
+    if (!playersRpcReady) {
+        sel.innerHTML = `<option value="">Nejprve aktualizuj databázové funkce</option>`;
+        sel.disabled = true;
+        return;
+    }
+
+    const filtered = loadedPlayers.filter((p) => {
+        if (!filter) return true;
+        return (p.nickname || "").toLowerCase().includes(filter) || (p.email || "").toLowerCase().includes(filter);
+    });
+
+    if (!filtered.length) {
+        sel.innerHTML = `<option value="">${loadedPlayers.length ? "Žádný hráč neodpovídá filtru" : "Zatím nejsou žádní registrovaní hráči"}</option>`;
+        sel.disabled = true;
+        return;
+    }
+
+    sel.disabled = false;
+    sel.innerHTML = filtered.map((p) => {
+        const label = `${p.nickname || "Stopař"}${p.email ? ` (${p.email})` : ""} • ${p.claims_count} rozhleden`;
+        return `<option value="${escapeHtml(p.user_id)}">${escapeHtml(label)}</option>`;
+    }).join("");
+    if (prev && filtered.some((p) => p.user_id === prev)) {
+        sel.value = prev;
+    }
+}
+
+function renderGrantSpotOptions() {
+    const sel = document.getElementById("grant-spot");
+    const prev = sel.value;
+    if (!loadedSpots.length) {
+        sel.innerHTML = `<option value="">Zatím nejsou žádné rozhledny</option>`;
+        sel.disabled = true;
+        return;
+    }
+    sel.disabled = false;
+    sel.innerHTML = loadedSpots.map((s) => (
+        `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)} (${escapeHtml(s.region)})</option>`
+    )).join("");
+    if (prev && loadedSpots.some((s) => s.id === prev)) {
+        sel.value = prev;
+    }
+}
+
 async function loadDashboard() {
     if (localMode) {
         const enabled = localStorage.getItem(LOCAL_ENABLED_KEY) === "1";
@@ -591,7 +680,13 @@ async function loadDashboard() {
         document.getElementById("admin-counters").textContent = `${(CFG.DEMO_SPOTS || []).length} demo rozhleden`;
         renderTrailStatusUI(enabled, teaser);
 
-        document.getElementById("spots-list").innerHTML = (CFG.DEMO_SPOTS || []).map((s) => `
+        loadedSpots = CFG.DEMO_SPOTS || [];
+        loadedPlayers = [];
+        playersRpcReady = true;
+        renderGrantPlayerOptions();
+        renderGrantSpotOptions();
+
+        document.getElementById("spots-list").innerHTML = loadedSpots.map((s) => `
             <div class="item-row">
                 <div>
                     <div class="item-title">${escapeHtml(s.name)}</div>
@@ -613,11 +708,19 @@ async function loadDashboard() {
     document.getElementById("admin-counters").textContent = `${info.spots_count} rozhleden • ${info.claims_count} nálezů`;
     renderTrailStatusUI(info.trail_enabled, info.teaser_message);
 
-    const [spots, claims] = await Promise.all([
+    const [spots, claims, players] = await Promise.all([
         sbAdminRpc("admin_list_spots"),
-        sbAdminRpc("admin_list_claims", { p_limit: 25 })
+        sbAdminRpc("admin_list_claims", { p_limit: 25 }),
+        sbAdminRpc("admin_list_players").catch(() => null)
     ]);
     loadedSpots = Array.isArray(spots) ? spots : [];
+    playersRpcReady = Array.isArray(players);
+    loadedPlayers = playersRpcReady ? players : [];
+    renderGrantPlayerOptions();
+    renderGrantSpotOptions();
+    if (!playersRpcReady) {
+        showMsg("grant-msg", "Pro ruční započítávání ještě chybí aktualizovat databázové funkce.", "warn");
+    }
 
     const spotsEl = document.getElementById("spots-list");
     if (!loadedSpots.length) {
@@ -661,7 +764,7 @@ async function loadDashboard() {
             <div class="item-row">
                 <div>
                     <div class="item-title">${escapeHtml(c.nickname)} → ${escapeHtml(c.spot_name)}</div>
-                    <div class="item-meta">${c.is_ftf ? "🥇 FTF • " : ""}${c.gps_verified ? `📍 GPS (${c.distance_m ?? 0} m) • ` : "Bez GPS • "}${new Date(c.claimed_at).toLocaleString("cs-CZ")}</div>
+                    <div class="item-meta">${c.is_ftf ? "🥇 FTF • " : ""}${c.gps_verified ? (c.distance_m != null ? `📍 GPS (${c.distance_m} m) • ` : "📍 Ručně ověřeno • ") : "Bez GPS • "}${new Date(c.claimed_at).toLocaleString("cs-CZ")}</div>
                 </div>
                 <button type="button" class="btn danger" data-del-claim="${c.id}" style="padding:6px 11px;font-size:0.78rem;">Smazat</button>
             </div>
@@ -1065,6 +1168,45 @@ document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
         e.currentTarget.textContent = "Zkopírováno ✓";
         setTimeout(() => { e.currentTarget.textContent = "Kopírovat"; }, 1400);
     } catch {}
+});
+
+document.getElementById("grant-player-filter").addEventListener("input", renderGrantPlayerOptions);
+
+document.getElementById("grant-claim-btn").addEventListener("click", async () => {
+    if (localMode) {
+        showMsg("grant-msg", "Ruční započítávání funguje po připojení online databáze.", "warn");
+        return;
+    }
+    const userId = document.getElementById("grant-player").value;
+    const spotId = document.getElementById("grant-spot").value;
+    const gpsVerified = document.getElementById("grant-gps").checked;
+    const allowFtf = document.getElementById("grant-ftf").checked;
+
+    if (!userId || !spotId) {
+        showMsg("grant-msg", "Vyber hráče i rozhlednu.", "err");
+        return;
+    }
+
+    showMsg("grant-msg", "Zapisuji zdolání rozhledny…");
+    try {
+        const res = await sbAdminRpc("admin_grant_claim", {
+            p_user_id: userId,
+            p_spot_id: spotId,
+            p_gps_verified: gpsVerified,
+            p_allow_ftf: allowFtf
+        });
+        if (!res || !res.ok) {
+            showMsg("grant-msg", (res && res.error) || "Zápis se nepodařil.", "err");
+            return;
+        }
+        const msg = res.upgraded_gps
+            ? `✓ Hráči „${res.nickname}“ doplněno GPS ověření u rozhledny „${res.spot_name}“.`
+            : `✓ Rozhledna „${res.spot_name}“ započítána hráči „${res.nickname}“${res.is_ftf ? " (🥇 FTF!)" : ""}${res.gps_verified ? " • 📍 ověřeno" : ""}.`;
+        showMsg("grant-msg", msg, "ok");
+        await loadDashboard();
+    } catch (err) {
+        showMsg("grant-msg", err.message || "Chyba při zápisu zdolání.", "err");
+    }
 });
 
 /* Init */
