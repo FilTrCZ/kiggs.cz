@@ -1,14 +1,13 @@
 -- ============================================================================
--- Paw Trail (Kiggs × Pobar) — Supabase SQL Setup (zdarma ve Free tieru)
+-- Paw Trail (Kiggs × Pobar) — Supabase SQL Setup (účty hráčů + Google Sign-In)
 -- ============================================================================
--- POSTUP NASTAVENÍ (cca 3 minuty):
--- 1) V Supabase vytvoř účty jen pro sebe a Pobara:
---    Authentication -> Users -> Add user (Email + silné heslo)
--- 2) Vypni veřejnou registraci cizích lidí:
---    Authentication -> Providers -> Email -> vypni "Enable Email Signup"
---    (nebo Authentication -> Sign In / Up -> Allow new users to sign up = OFF)
--- 3) Dole v kroku 9 doplň své e-maily (Kiggs & Pobar) do tabulky admin_users.
--- 4) Spusť celý tento skript v Supabase -> SQL Editor -> Run.
+-- POSTUP NASTAVENÍ:
+-- 1) V Supabase nech zapnuté registrace (Authentication -> Sign In / Providers -> Email -> Allow new users to sign up = ON),
+--    protože hráči se mohou registrovat a přihlašovat přes Google nebo E-mail.
+-- 2) Bezpečnost Velína smečky zajišťuje tabulka public.admin_users (pouze potvrzené
+--    e-maily v ní mají admin oprávnění — nikdo jiný se do administrace nedostane!).
+-- 3) Úplně dole v kroku 10 odkomentuj a doplň e-mail Kiggse (a případně Pobara)
+--    do tabulky admin_users a klikni na RUN.
 -- ============================================================================
 
 -- 1. Globální nastavení hry (stav zamčeno / spuštěno)
@@ -29,7 +28,15 @@ create table if not exists public.admin_users (
     created_at timestamptz not null default now()
 );
 
--- 3. Tabulka rozhleden (code_hash a secret_note jsou chráněné přes RLS)
+-- 3. Profily přihlášených hráčů (synchronizované napříč mobilem i PC)
+create table if not exists public.profiles (
+    user_id uuid primary key references auth.users(id) on delete cascade,
+    nickname text not null check (char_length(trim(nickname)) between 2 and 24),
+    avatar_url text,
+    updated_at timestamptz not null default now()
+);
+
+-- 4. Tabulka rozhleden (code_hash a secret_note jsou chráněné přes RLS)
 create table if not exists public.spots (
     id text primary key,
     name text not null,
@@ -43,7 +50,7 @@ create table if not exists public.spots (
     created_at timestamptz not null default now()
 );
 
--- 4. Tabulka nálezů hráčů
+-- 5. Tabulka nálezů hráčů (svázáno s auth.users.id -> 100% synchronizace mezi zařízeními)
 create table if not exists public.claims (
     id bigint generated always as identity primary key,
     spot_id text not null references public.spots(id) on delete cascade,
@@ -59,9 +66,10 @@ create table if not exists public.claims (
 create index if not exists idx_claims_spot on public.claims (spot_id, claimed_at asc);
 create index if not exists idx_claims_player on public.claims (player_id);
 
--- 5. Zapnutí Row Level Security (nikdo nemá přímý přístup k tabulkám bez našich RPC)
+-- 6. Zapnutí Row Level Security (vše jde výhradně přes zabezpečené RPC funkce)
 alter table public.app_settings enable row level security;
 alter table public.admin_users enable row level security;
+alter table public.profiles enable row level security;
 alter table public.spots enable row level security;
 alter table public.claims enable row level security;
 
@@ -71,6 +79,9 @@ create policy "Block direct app_settings" on public.app_settings for all to anon
 drop policy if exists "Block direct admin_users" on public.admin_users;
 create policy "Block direct admin_users" on public.admin_users for all to anon, authenticated using (false) with check (false);
 
+drop policy if exists "Block direct profiles" on public.profiles;
+create policy "Block direct profiles" on public.profiles for all to anon, authenticated using (false) with check (false);
+
 drop policy if exists "No direct spots select" on public.spots;
 drop policy if exists "Block direct spots" on public.spots;
 create policy "Block direct spots" on public.spots for all to anon, authenticated using (false) with check (false);
@@ -79,26 +90,119 @@ drop policy if exists "No direct claims write" on public.claims;
 drop policy if exists "Block direct claims" on public.claims;
 create policy "Block direct claims" on public.claims for all to anon, authenticated using (false) with check (false);
 
--- 6. Pomocná serverová funkce: ověří, zda je přihlášený uživatel ve whitelistu admin_users
+-- 7. Pomocné serverové funkce
+-- Ověří, že je uživatel přihlášený, má potvrzený e-mail a je ve whitelistu admin_users
 create or replace function public.is_admin()
 returns boolean
 language sql
 security definer
-set search_path = public
+set search_path = public, auth
 as $$
     select exists (
         select 1
         from public.admin_users a
-        where auth.role() = 'authenticated'
-          and lower(a.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+        join auth.users u on lower(u.email) = lower(a.email)
+        where u.id = auth.uid()
+          and u.email_confirmed_at is not null
     );
 $$;
 
+-- Automaticky vytvoří/vrátí profil přihlášeného hráče (z Google jména nebo e-mailu)
+create or replace function public.ensure_my_profile(p_preferred_nick text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+    v_uid uuid := auth.uid();
+    v_prof public.profiles%rowtype;
+    v_user auth.users%rowtype;
+    v_name text;
+    v_avatar text;
+begin
+    if v_uid is null then
+        return jsonb_build_object('ok', false, 'error', 'Nejsi přihlášený.');
+    end if;
+
+    select * into v_prof from public.profiles where user_id = v_uid;
+    if found then
+        return jsonb_build_object(
+            'ok', true,
+            'user_id', v_prof.user_id,
+            'nickname', v_prof.nickname,
+            'avatar_url', v_prof.avatar_url
+        );
+    end if;
+
+    select * into v_user from auth.users where id = v_uid;
+    v_avatar := coalesce(
+        v_user.raw_user_meta_data ->> 'avatar_url',
+        v_user.raw_user_meta_data ->> 'picture'
+    );
+    v_name := left(trim(coalesce(
+        nullif(trim(coalesce(p_preferred_nick, '')), ''),
+        nullif(trim(coalesce(v_user.raw_user_meta_data ->> 'nickname', '')), ''),
+        nullif(trim(coalesce(v_user.raw_user_meta_data ->> 'full_name', '')), ''),
+        nullif(trim(coalesce(v_user.raw_user_meta_data ->> 'name', '')), ''),
+        split_part(coalesce(v_user.email, 'Stopar'), '@', 1)
+    )), 24);
+
+    if char_length(v_name) < 2 then
+        v_name := 'Stopař';
+    end if;
+
+    insert into public.profiles (user_id, nickname, avatar_url)
+    values (v_uid, v_name, v_avatar)
+    on conflict (user_id) do update set
+        avatar_url = coalesce(excluded.avatar_url, public.profiles.avatar_url)
+    returning * into v_prof;
+
+    return jsonb_build_object(
+        'ok', true,
+        'user_id', v_prof.user_id,
+        'nickname', v_prof.nickname,
+        'avatar_url', v_prof.avatar_url
+    );
+end;
+$$;
+
+-- Změna přezdívky hráče (propíše se i do jeho záznamů v žebříčku)
+create or replace function public.update_my_profile(p_nickname text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_uid uuid := auth.uid();
+    v_clean text := left(trim(coalesce(p_nickname, '')), 24);
+begin
+    if v_uid is null then
+        return jsonb_build_object('ok', false, 'error', 'Nejsi přihlášený.');
+    end if;
+    if char_length(v_clean) < 2 then
+        return jsonb_build_object('ok', false, 'error', 'Přezdívka musí mít alespoň 2 znaky.');
+    end if;
+
+    insert into public.profiles (user_id, nickname, updated_at)
+    values (v_uid, v_clean, now())
+    on conflict (user_id) do update set
+        nickname = excluded.nickname,
+        updated_at = now();
+
+    update public.claims
+    set nickname = v_clean
+    where player_id = v_uid::text;
+
+    return jsonb_build_object('ok', true, 'nickname', v_clean);
+end;
+$$;
+
 -- ============================================================================
--- 7. VEŘEJNÉ FUNKCE (pro hráče — anon i authenticated)
+-- 8. VEŘEJNÉ A HRÁČSKÉ FUNKCE
 -- ============================================================================
 
--- Zjistí, jestli je Paw Trail odemčený (používá index.html i lov/index.html)
 create or replace function public.get_trail_status()
 returns jsonb
 language sql
@@ -112,7 +216,7 @@ as $$
     );
 $$;
 
--- Veřejný přehled rozhleden (bez code_hash; secret_note jen pokud hráč rozhlednu našel)
+drop function if exists public.get_public_spots(text);
 create or replace function public.get_public_spots(p_player_id text default null)
 returns table (
     id text,
@@ -135,6 +239,9 @@ language sql
 security definer
 set search_path = public
 as $$
+    with me as (
+        select coalesce(auth.uid()::text, p_player_id) as pid
+    )
     select
         s.id,
         s.name,
@@ -144,7 +251,7 @@ as $$
         s.lng,
         s.hint,
         coalesce(st.finders_count, 0) as finders_count,
-        ftf.nickname as ftf_nickname,
+        coalesce(ftf_p.nickname, ftf.nickname) as ftf_nickname,
         ftf.claimed_at as ftf_at,
         (mc.id is not null) as my_claimed,
         coalesce(mc.gps_verified, false) as my_gps_verified,
@@ -152,32 +259,35 @@ as $$
         mc.claimed_at as my_claimed_at,
         case when mc.id is not null then s.secret_note else null end as secret_note
     from public.spots s
+    cross join me
     left join (
         select spot_id, count(*) as finders_count
         from public.claims
         group by spot_id
     ) st on st.spot_id = s.id
     left join lateral (
-        select c.nickname, c.claimed_at
+        select c.player_id, c.nickname, c.claimed_at
         from public.claims c
         where c.spot_id = s.id and c.is_ftf = true
         order by c.claimed_at asc
         limit 1
     ) ftf on true
+    left join public.profiles ftf_p on ftf_p.user_id::text = ftf.player_id
     left join public.claims mc
         on mc.spot_id = s.id
-       and p_player_id is not null
-       and mc.player_id = p_player_id
+       and me.pid is not null
+       and mc.player_id = me.pid
     where coalesce((select trail_enabled from public.app_settings where id = 1), false) = true
        or public.is_admin()
     order by s.created_at asc, s.name asc;
 $$;
 
--- Veřejný žebříček hráčů
+drop function if exists public.get_leaderboard(integer);
 create or replace function public.get_leaderboard(p_limit integer default 30)
 returns table (
     player_id text,
     nickname text,
+    avatar_url text,
     spots_count bigint,
     gps_count bigint,
     ftf_count bigint,
@@ -189,24 +299,26 @@ set search_path = public
 as $$
     select
         c.player_id,
-        (array_agg(c.nickname order by c.claimed_at desc))[1] as nickname,
+        coalesce(p.nickname, (array_agg(c.nickname order by c.claimed_at desc))[1]) as nickname,
+        p.avatar_url,
         count(*) as spots_count,
         count(*) filter (where c.gps_verified) as gps_count,
         count(*) filter (where c.is_ftf) as ftf_count,
         max(c.claimed_at) as last_claim
     from public.claims c
+    left join public.profiles p on p.user_id::text = c.player_id
     where coalesce((select trail_enabled from public.app_settings where id = 1), false) = true
        or public.is_admin()
-    group by c.player_id
+    group by c.player_id, p.nickname, p.avatar_url
     order by spots_count desc, ftf_count desc, gps_count desc, last_claim asc
     limit greatest(1, least(p_limit, 100));
 $$;
 
--- Server-side odemčení rozhledny (atomické FTF + výpočet GPS vzdálenosti)
+-- Odemčení rozhledny přihlášeným hráčem (server bere identitu přímo z auth.uid()!)
 create or replace function public.claim_spot(
     p_code_hash text,
-    p_player_id text,
-    p_nickname text,
+    p_player_id text default null,
+    p_nickname text default null,
     p_lat double precision default null,
     p_lng double precision default null,
     p_radius_m integer default 300
@@ -214,13 +326,15 @@ create or replace function public.claim_spot(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, auth
 as $$
 declare
+    v_uid uuid := auth.uid();
     v_enabled boolean;
+    v_prof jsonb;
+    v_clean_nick text;
     v_spot public.spots%rowtype;
     v_existing public.claims%rowtype;
-    v_clean_nick text;
     v_dist integer := null;
     v_gps_ok boolean := false;
     v_is_ftf boolean := false;
@@ -228,19 +342,18 @@ declare
     v_dlng double precision;
     v_a double precision;
 begin
+    if v_uid is null then
+        return jsonb_build_object('ok', false, 'error', 'Pro zapsání rozhledny se prosím nejdřív přihlas (Google nebo e-mail).');
+    end if;
+
     select trail_enabled into v_enabled from public.app_settings where id = 1;
     if not coalesce(v_enabled, false) and not public.is_admin() then
         return jsonb_build_object('ok', false, 'error', 'Paw Trail ještě není spuštěný — sleduj kiggs.cz!');
     end if;
 
-    v_clean_nick := left(trim(coalesce(p_nickname, '')), 24);
-    if char_length(v_clean_nick) < 2 then
-        return jsonb_build_object('ok', false, 'error', 'Zadej přezdívku (alespoň 2 znaky).');
-    end if;
-
-    if p_player_id is null or char_length(p_player_id) < 8 then
-        return jsonb_build_object('ok', false, 'error', 'Neplatný identifikátor hráče.');
-    end if;
+    -- Zajisti profil (při prvním přihlášení se automaticky vezme jméno z Google účtu)
+    v_prof := public.ensure_my_profile(p_nickname);
+    v_clean_nick := coalesce(v_prof ->> 'nickname', 'Stopař');
 
     select * into v_spot
     from public.spots
@@ -264,7 +377,7 @@ begin
 
     select * into v_existing
     from public.claims
-    where spot_id = v_spot.id and player_id = p_player_id;
+    where spot_id = v_spot.id and player_id = v_uid::text;
 
     if found then
         if not v_existing.gps_verified and v_gps_ok then
@@ -302,7 +415,7 @@ begin
     v_is_ftf := not exists (select 1 from public.claims where spot_id = v_spot.id);
 
     insert into public.claims (spot_id, player_id, nickname, gps_verified, distance_m, is_ftf)
-    values (v_spot.id, p_player_id, v_clean_nick, v_gps_ok, v_dist, v_is_ftf);
+    values (v_spot.id, v_uid::text, v_clean_nick, v_gps_ok, v_dist, v_is_ftf);
 
     return jsonb_build_object(
         'ok', true,
@@ -320,7 +433,7 @@ end;
 $$;
 
 -- ============================================================================
--- 8. ZABEZPEČENÉ ADMIN FUNKCE (jen pro přihlášené uživatele z admin_users!)
+-- 9. ZABEZPEČENÉ ADMIN FUNKCE (jen pro přihlášené uživatele z admin_users!)
 -- ============================================================================
 
 create or replace function public.admin_check()
@@ -331,7 +444,7 @@ set search_path = public
 as $$
 begin
     if not public.is_admin() then
-        return jsonb_build_object('ok', false, 'error', 'Tento účet nemá administrátorská oprávnění.');
+        return jsonb_build_object('ok', false, 'error', 'Tento účet nemá přístup do velína smečky.');
     end if;
 
     return jsonb_build_object(
@@ -373,6 +486,7 @@ begin
 end;
 $$;
 
+drop function if exists public.admin_list_spots();
 create or replace function public.admin_list_spots()
 returns table (
     id text,
@@ -400,13 +514,14 @@ begin
     select
         s.id, s.name, s.region, s.elevation, s.lat, s.lng, s.hint, s.secret_note,
         coalesce(st.cnt, 0) as finders_count,
-        ftf.nickname as ftf_nickname,
+        coalesce(ftf_p.nickname, ftf.nickname) as ftf_nickname,
         s.created_at
     from public.spots s
     left join (select spot_id, count(*) as cnt from public.claims group by spot_id) st on st.spot_id = s.id
     left join lateral (
-        select c.nickname from public.claims c where c.spot_id = s.id and c.is_ftf = true order by c.claimed_at asc limit 1
+        select c.player_id, c.nickname from public.claims c where c.spot_id = s.id and c.is_ftf = true order by c.claimed_at asc limit 1
     ) ftf on true
+    left join public.profiles ftf_p on ftf_p.user_id::text = ftf.player_id
     order by s.created_at desc;
 end;
 $$;
@@ -467,6 +582,7 @@ begin
 end;
 $$;
 
+drop function if exists public.admin_list_claims(integer);
 create or replace function public.admin_list_claims(p_limit integer default 30)
 returns table (
     id bigint,
@@ -488,9 +604,11 @@ begin
     end if;
 
     return query
-    select c.id, c.spot_id, s.name as spot_name, c.nickname, c.gps_verified, c.distance_m, c.is_ftf, c.claimed_at
+    select c.id, c.spot_id, s.name as spot_name, coalesce(p.nickname, c.nickname) as nickname,
+           c.gps_verified, c.distance_m, c.is_ftf, c.claimed_at
     from public.claims c
     join public.spots s on s.id = c.spot_id
+    left join public.profiles p on p.user_id::text = c.player_id
     order by c.claimed_at desc
     limit greatest(1, least(p_limit, 100));
 end;
@@ -516,7 +634,10 @@ $$;
 grant execute on function public.get_trail_status() to anon, authenticated;
 grant execute on function public.get_public_spots(text) to anon, authenticated;
 grant execute on function public.get_leaderboard(integer) to anon, authenticated;
-grant execute on function public.claim_spot(text, text, text, double precision, double precision, integer) to anon, authenticated;
+
+grant execute on function public.ensure_my_profile(text) to authenticated;
+grant execute on function public.update_my_profile(text) to authenticated;
+grant execute on function public.claim_spot(text, text, text, double precision, double precision, integer) to authenticated;
 
 grant execute on function public.admin_check() to authenticated;
 grant execute on function public.admin_set_trail_status(boolean, text) to authenticated;
@@ -527,9 +648,9 @@ grant execute on function public.admin_list_claims(integer) to authenticated;
 grant execute on function public.admin_delete_claim(bigint) to authenticated;
 
 -- ============================================================================
--- 9. PŘIDEJ SVŮJ (A POBARŮV) ADMIN E-MAIL! (Změň před spuštěním)
+-- 10. PŘIDEJ SVŮJ (A POBARŮV) ADMIN E-MAIL! (Změň před spuštěním)
 -- ============================================================================
 -- insert into public.admin_users (email) values
--- ('tvuj-email@domena.cz'),
--- ('pobar-email@domena.cz')
+-- ('tvuj-email@gmail.com'),
+-- ('pobar-email@gmail.com')
 -- on conflict (email) do nothing;

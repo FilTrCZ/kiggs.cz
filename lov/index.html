@@ -11,8 +11,9 @@
 <meta name="description" content="Paw Trail (Kiggs × Pobar) — najdi naše nálepky na rozhlednách, sbírej odznaky a získej FTF v žebříčku.">
 
 <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../images/app-icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
-<link rel="manifest" href="../manifest.webmanifest?v=2">
+<link rel="manifest" href="/manifest.webmanifest">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,16 +36,8 @@
     --danger: #ff6b6b;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    color-scheme: dark;
-    background: var(--bg);
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { color-scheme: dark; background: var(--bg); }
 
 body {
     min-height: 100dvh;
@@ -115,6 +108,7 @@ body {
     appearance: none;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 9px 14px;
     border-radius: 999px;
@@ -144,10 +138,21 @@ body {
     border-color: transparent;
     box-shadow: 0 8px 24px rgba(242, 211, 43, 0.24);
 }
+.pill-btn.primary:hover { background: #f7dc4d; color: #0b1220; }
 
-.pill-btn.primary:hover {
-    background: #f7dc4d;
-    color: #0b1220;
+.pill-btn.google {
+    background: #ffffff;
+    color: #111827;
+    border-color: transparent;
+}
+.pill-btn.google:hover { background: #f1f5f9; color: #111827; }
+
+.user-avatar-sm {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: none;
 }
 
 .topbar-actions {
@@ -200,10 +205,7 @@ body {
     letter-spacing: 0.03em;
     line-height: 1.15;
 }
-
-.hero h1 span {
-    color: var(--accent);
-}
+.hero h1 span { color: var(--accent); }
 
 .hero-sub {
     font-size: 0.88rem;
@@ -229,31 +231,10 @@ body {
     background: var(--green-soft);
 }
 
-.progress-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.progress-head {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.84rem;
-    color: var(--muted);
-}
-
-.progress-head strong {
-    color: var(--accent);
-}
-
-.progress-track {
-    width: 100%;
-    height: 9px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.07);
-    overflow: hidden;
-}
-
+.progress-row { display: flex; flex-direction: column; gap: 8px; }
+.progress-head { display: flex; justify-content: space-between; font-size: 0.84rem; color: var(--muted); }
+.progress-head strong { color: var(--accent); }
+.progress-track { width: 100%; height: 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
 .progress-fill {
     height: 100%;
     width: 0%;
@@ -275,21 +256,8 @@ body {
     background: rgba(6, 13, 24, 0.56);
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
-
-.stat-tile .lbl {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 4px;
-}
-
-.stat-tile .val {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 700;
-}
-
+.stat-tile .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
+.stat-tile .val { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.15rem; font-weight: 700; }
 .stat-tile .val.accent { color: var(--accent); }
 .stat-tile .val.green { color: var(--green); }
 
@@ -318,22 +286,12 @@ body {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.tab-btn.is-active {
-    background: rgba(242, 211, 43, 0.16);
-    color: var(--accent);
-}
+.tab-btn.is-active { background: rgba(242, 211, 43, 0.16); color: var(--accent); }
 
-.view {
-    display: none;
-    flex-direction: column;
-    gap: 16px;
-}
+.view { display: none; flex-direction: column; gap: 16px; }
+.view.is-active { display: flex; }
 
-.view.is-active {
-    display: flex;
-}
-
-/* Map container */
+/* Map */
 .map-shell {
     position: relative;
     width: 100%;
@@ -345,11 +303,7 @@ body {
     box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
 }
 
-#map {
-    width: 100%;
-    height: 100%;
-    background: #081222;
-}
+#map { width: 100%; height: 100%; background: #081222; }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
@@ -358,13 +312,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.14);
     box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
 }
-
-.leaflet-popup-content {
-    margin: 12px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.84rem;
-    line-height: 1.45;
-}
+.leaflet-popup-content { margin: 12px 14px; font-family: 'Inter', sans-serif; font-size: 0.84rem; line-height: 1.45; }
 
 .map-pin {
     width: 34px;
@@ -388,20 +336,8 @@ body {
 }
 
 /* Filters */
-.filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.filter-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter-chip {
     appearance: none;
     border: 1px solid var(--border);
@@ -415,19 +351,10 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
 }
-
-.filter-chip.is-active {
-    color: var(--accent);
-    border-color: var(--border-accent);
-    background: var(--accent-soft);
-}
+.filter-chip.is-active { color: var(--accent); border-color: var(--border-accent); background: var(--accent-soft); }
 
 /* Spots grid */
-.spots-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-}
+.spots-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 
 .spot-card {
     position: relative;
@@ -443,112 +370,38 @@ body {
     cursor: pointer;
     transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
 }
-
-.spot-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36);
-}
-
+.spot-card:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.22); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36); }
 .spot-card.is-found {
     border-color: rgba(242, 211, 43, 0.36);
     background: linear-gradient(155deg, rgba(242, 211, 43, 0.08) 0%, rgba(14, 24, 42, 0.78) 55%);
 }
 
-.spot-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.spot-name {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-size: 1.06rem;
-    font-weight: 700;
-    line-height: 1.25;
-}
-
-.spot-region {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 2px;
-}
-
+.spot-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.spot-name { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.06rem; font-weight: 700; line-height: 1.25; }
+.spot-region { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
 .spot-stamp {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    font-size: 1.05rem;
-    flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
+    width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center;
+    font-size: 1.05rem; flex-shrink: 0; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
 }
+.spot-card.is-found .spot-stamp { background: var(--accent-soft); border-color: var(--border-accent); }
 
-.spot-card.is-found .spot-stamp {
-    background: var(--accent-soft);
-    border-color: var(--border-accent);
-}
-
-.spot-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
+.spot-badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: rgba(6, 13, 24, 0.62);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--muted);
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 600; background: rgba(6, 13, 24, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.08); color: var(--muted);
 }
-
-.tag.gold {
-    color: var(--accent);
-    border-color: rgba(242, 211, 43, 0.35);
-    background: var(--accent-soft);
-}
-
-.tag.gps {
-    color: var(--green);
-    border-color: rgba(52, 211, 153, 0.35);
-    background: var(--green-soft);
-}
+.tag.gold { color: var(--accent); border-color: rgba(242, 211, 43, 0.35); background: var(--accent-soft); }
+.tag.gps { color: var(--green); border-color: rgba(52, 211, 153, 0.35); background: var(--green-soft); }
 
 .spot-note {
-    font-size: 0.84rem;
-    line-height: 1.48;
-    color: rgba(245, 247, 251, 0.84);
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(6, 13, 24, 0.52);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.84rem; line-height: 1.48; color: rgba(245, 247, 251, 0.84);
+    padding: 10px 12px; border-radius: 12px; background: rgba(6, 13, 24, 0.52); border: 1px solid rgba(255, 255, 255, 0.06);
 }
+.spot-card.is-found .spot-note { border-color: rgba(242, 211, 43, 0.22); background: rgba(242, 211, 43, 0.07); }
+.spot-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; font-size: 0.76rem; color: var(--muted); padding-top: 4px; }
 
-.spot-card.is-found .spot-note {
-    border-color: rgba(242, 211, 43, 0.22);
-    background: rgba(242, 211, 43, 0.07);
-}
-
-.spot-foot {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.76rem;
-    color: var(--muted);
-    padding-top: 4px;
-}
-
-/* Leaderboard */
+/* Leaderboard & Panels */
 .panel {
     padding: 20px;
     border-radius: 22px;
@@ -569,12 +422,7 @@ body {
     margin-bottom: 14px;
 }
 
-.lb-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
+.lb-list { display: flex; flex-direction: column; gap: 8px; }
 .lb-row {
     display: grid;
     grid-template-columns: 38px minmax(0, 1fr) auto;
@@ -585,286 +433,96 @@ body {
     background: rgba(6, 13, 24, 0.58);
     border: 1px solid rgba(255, 255, 255, 0.07);
 }
-
-.lb-row.is-me {
-    border-color: var(--border-accent);
-    background: rgba(242, 211, 43, 0.09);
-}
-
-.lb-pos {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    text-align: center;
-    color: var(--muted);
-}
-
+.lb-row.is-me { border-color: var(--border-accent); background: rgba(242, 211, 43, 0.09); }
+.lb-pos { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 700; font-size: 1rem; text-align: center; color: var(--muted); }
 .lb-row:nth-child(1) .lb-pos { color: #facc15; }
 .lb-row:nth-child(2) .lb-pos { color: #cbd5e1; }
 .lb-row:nth-child(3) .lb-pos { color: #f59e0b; }
+.lb-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lb-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+.lb-name { font-weight: 600; font-size: 0.94rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-sub { font-size: 0.76rem; color: var(--muted); }
+.lb-score { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--accent); }
 
-.lb-name {
-    font-weight: 600;
-    font-size: 0.94rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.lb-sub {
-    font-size: 0.76rem;
-    color: var(--muted);
-}
-
-.lb-score {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--accent);
-}
-
-/* Badges grid */
-.badges-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
+/* Badges */
+.badges-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .badge-card {
-    padding: 16px;
-    border-radius: 18px;
-    background: rgba(6, 13, 24, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    opacity: 0.52;
-    transition: opacity 0.2s ease, border-color 0.2s ease;
+    padding: 16px; border-radius: 18px; background: rgba(6, 13, 24, 0.55); border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex; align-items: center; gap: 14px; opacity: 0.52; transition: opacity 0.2s ease, border-color 0.2s ease;
 }
-
-.badge-card.is-unlocked {
-    opacity: 1;
-    border-color: var(--border-accent);
-    background: rgba(242, 211, 43, 0.07);
-}
-
-.badge-ico {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    font-size: 1.45rem;
-    background: rgba(255, 255, 255, 0.06);
-    flex-shrink: 0;
-}
-
-.badge-card.is-unlocked .badge-ico {
-    background: var(--accent-soft);
-}
-
-.badge-title {
-    font-weight: 700;
-    font-size: 0.92rem;
-    margin-bottom: 2px;
-}
-
-.badge-desc {
-    font-size: 0.78rem;
-    color: var(--muted);
-    line-height: 1.4;
-}
+.badge-card.is-unlocked { opacity: 1; border-color: var(--border-accent); background: rgba(242, 211, 43, 0.07); }
+.badge-ico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.45rem; background: rgba(255, 255, 255, 0.06); flex-shrink: 0; }
+.badge-card.is-unlocked .badge-ico { background: var(--accent-soft); }
+.badge-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+.badge-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
 /* Modal */
 .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    background: rgba(3, 7, 14, 0.78);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 18px;
+    position: fixed; inset: 0; z-index: 999; background: rgba(3, 7, 14, 0.78);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; padding: 18px;
 }
-
-.modal-backdrop.is-open {
-    display: flex;
-}
+.modal-backdrop.is-open { display: flex; }
 
 .modal {
-    width: 100%;
-    max-width: 440px;
-    padding: 24px;
-    border-radius: 24px;
-    background: var(--card-solid);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65);
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    width: 100%; max-width: 440px; padding: 24px; border-radius: 24px;
+    background: var(--card-solid); border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65); display: flex; flex-direction: column; gap: 14px;
 }
+.modal h2 { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.3rem; }
+.modal p { font-size: 0.88rem; line-height: 1.5; color: var(--muted); }
 
-.modal h2 {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-size: 1.3rem;
-}
-
-.modal p {
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: var(--muted);
-}
-
-.field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.field label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 0.76rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .field input {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 13px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(6, 13, 24, 0.85);
-    color: var(--text);
-    font: inherit;
-    font-size: 0.95rem;
+    width: 100%; padding: 12px 14px; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(6, 13, 24, 0.85); color: var(--text); font: inherit; font-size: 0.94rem;
 }
+.field input:focus { outline: none; border-color: var(--accent); }
 
-.field input:focus {
-    outline: none;
-    border-color: var(--accent);
-}
+.modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.modal-actions .pill-btn { padding: 12px 16px; border-radius: 13px; }
 
-.modal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 4px;
+.divider {
+    display: flex; align-items: center; gap: 10px; font-size: 0.74rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
 }
-
-.modal-actions .pill-btn {
-    justify-content: center;
-    padding: 12px 16px;
-}
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 .status-msg {
-    font-size: 0.84rem;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-    display: none;
+    font-size: 0.84rem; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05);
+    color: var(--text); display: none;
 }
-
 .status-msg.is-visible { display: block; }
 .status-msg.is-error { background: rgba(255, 107, 107, 0.14); color: #ffb4b4; border: 1px solid rgba(255, 107, 107, 0.3); }
 .status-msg.is-ok { background: var(--green-soft); color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.35); }
 
-.qr-video {
-    width: 100%;
-    border-radius: 14px;
-    background: #000;
-    display: none;
-    max-height: 240px;
-    object-fit: cover;
-}
+.qr-video { width: 100%; border-radius: 14px; background: #000; display: none; max-height: 240px; object-fit: cover; }
+.qr-video.is-active { display: block; }
 
-.qr-video.is-active {
-    display: block;
-}
-
-.demo-codes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-top: 4px;
-}
-
+.demo-codes { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; }
 .demo-chip {
-    appearance: none;
-    border: 1px dashed rgba(242, 211, 43, 0.38);
-    background: rgba(242, 211, 43, 0.08);
-    color: var(--accent);
-    font: inherit;
-    font-size: 0.74rem;
-    font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 999px;
-    cursor: pointer;
+    appearance: none; border: 1px dashed rgba(242, 211, 43, 0.38); background: rgba(242, 211, 43, 0.08);
+    color: var(--accent); font: inherit; font-size: 0.74rem; font-weight: 600; padding: 5px 10px; border-radius: 999px; cursor: pointer;
 }
 
 .locked-screen {
-    margin: 28px auto;
-    max-width: 460px;
-    padding: 32px 26px;
-    border-radius: 26px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    text-align: center;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    margin: 28px auto; max-width: 460px; padding: 32px 26px; border-radius: 26px;
+    background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px); text-align: center; display: none;
+    flex-direction: column; align-items: center; gap: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
 }
-
-.locked-screen.is-active {
-    display: flex;
-}
-
-.locked-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    display: grid;
-    place-items: center;
-    font-size: 1.8rem;
-    background: var(--accent-soft);
-    border: 1px solid var(--border-accent);
-}
-
-.locked-screen h1 {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-    font-size: 1.65rem;
-}
-
+.locked-screen.is-active { display: flex; }
+.locked-icon { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; font-size: 1.8rem; background: var(--accent-soft); border: 1px solid var(--border-accent); }
+.locked-screen h1 { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.65rem; }
 .locked-screen h1 span { color: var(--accent); }
-
-.locked-screen p {
-    font-size: 0.92rem;
-    line-height: 1.55;
-    color: var(--muted);
-}
-
+.locked-screen p { font-size: 0.92rem; line-height: 1.55; color: var(--muted); }
 .is-hidden { display: none !important; }
 
 @media (max-width: 720px) {
-    .stats-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .spots-grid,
-    .badges-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .map-shell {
-        height: 300px;
-    }
+    .stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .spots-grid, .badges-grid { grid-template-columns: 1fr; }
+    .map-shell { height: 300px; }
 }
 </style>
 </head>
@@ -876,12 +534,16 @@ body {
     <div class="topbar">
         <a href="../index.html" class="back-btn">← Zpět na kiggs.cz</a>
         <div class="topbar-actions" id="game-top-actions">
-            <button type="button" class="pill-btn" id="nick-btn">👤 <span id="nick-label">Nastavit přezdívku</span></button>
+            <a href="admin.html" class="pill-btn is-hidden" id="admin-shortcut-btn" style="color:var(--accent);border-color:var(--border-accent);">⚙️ Velín</a>
+            <button type="button" class="pill-btn" id="account-btn">
+                <img class="user-avatar-sm" id="account-avatar" alt="">
+                <span id="account-label">Přihlásit se</span>
+            </button>
             <button type="button" class="pill-btn primary" id="open-scan-btn">📷 Naskenovat / Zadat kód</button>
         </div>
     </div>
 
-    <!-- LOCKED TEASER SCREEN (dokud admin hru nespustí) -->
+    <!-- LOCKED TEASER SCREEN -->
     <section class="locked-screen" id="locked-screen">
         <div class="locked-icon" aria-hidden="true">🔒</div>
         <h1>Paw <span>Trail</span></h1>
@@ -891,125 +553,115 @@ body {
     </section>
 
     <div id="game-shell" style="display:flex;flex-direction:column;gap:18px;">
-    <section class="hero">
-        <div class="hero-top">
-            <div class="hero-brand">
-                <img class="hero-avatar" src="../images/app-icon-192.png" alt="Paw Trail" width="58" height="58">
-                <div>
-                    <h1>Paw <span>Trail</span></h1>
-                    <div class="hero-sub">Kiggs × Pobar • Najdi naše nálepky na rozhlednách (QR / NFC) 🐾</div>
+        <section class="hero">
+            <div class="hero-top">
+                <div class="hero-brand">
+                    <img class="hero-avatar" src="../images/app-icon-192.png" alt="Paw Trail" width="58" height="58">
+                    <div>
+                        <h1>Paw <span>Trail</span></h1>
+                        <div class="hero-sub">Kiggs × Pobar • Najdi naše nálepky na rozhlednách (QR / NFC) 🐾</div>
+                    </div>
+                </div>
+                <span class="mode-badge" id="mode-badge">Lokální demo režim</span>
+            </div>
+
+            <div class="progress-row">
+                <div class="progress-head">
+                    <span>Postup sbírky</span>
+                    <strong id="progress-text">0 / 0 rozhleden</strong>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
                 </div>
             </div>
-            <span class="mode-badge" id="mode-badge">Lokální demo režim</span>
+
+            <div class="stats-strip">
+                <div class="stat-tile">
+                    <div class="lbl">Nalezeno</div>
+                    <div class="val accent" id="stat-found">0</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="lbl">Ověřeno GPS</div>
+                    <div class="val green" id="stat-gps">0</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="lbl">FTF (První!)</div>
+                    <div class="val accent" id="stat-ftf">0</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="lbl">Výškové metry</div>
+                    <div class="val" id="stat-elev">0 m</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="tabs" role="tablist">
+            <button type="button" class="tab-btn is-active" data-tab="spots" role="tab" aria-selected="true">🗺️ Rozhledny</button>
+            <button type="button" class="tab-btn" data-tab="leaderboard" role="tab" aria-selected="false">🏆 Žebříček</button>
+            <button type="button" class="tab-btn" data-tab="badges" role="tab" aria-selected="false">🎖️ Odznaky</button>
         </div>
 
-        <div class="progress-row">
-            <div class="progress-head">
-                <span>Postup sbírky</span>
-                <strong id="progress-text">0 / 0 rozhleden</strong>
+        <!-- VIEW 1: MAP & SPOTS -->
+        <section class="view is-active" id="view-spots">
+            <div class="map-shell">
+                <div id="map" aria-label="Mapa rozhleden"></div>
             </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
 
-        <div class="stats-strip">
-            <div class="stat-tile">
-                <div class="lbl">Nalezeno</div>
-                <div class="val accent" id="stat-found">0</div>
+            <div class="filters">
+                <div class="filter-group">
+                    <button type="button" class="filter-chip is-active" data-filter="all">Všechny</button>
+                    <button type="button" class="filter-chip" data-filter="found">Nalezené</button>
+                    <button type="button" class="filter-chip" data-filter="missing">Chybějící</button>
+                </div>
+                <button type="button" class="filter-chip" id="locate-me-btn">📍 Zobrazit vzdálenosti</button>
             </div>
-            <div class="stat-tile">
-                <div class="lbl">Ověřeno GPS</div>
-                <div class="val green" id="stat-gps">0</div>
+
+            <div class="spots-grid" id="spots-grid"></div>
+        </section>
+
+        <!-- VIEW 2: LEADERBOARD -->
+        <section class="view" id="view-leaderboard">
+            <div class="panel">
+                <div class="notice-box" id="lb-demo-notice" style="display:none;">
+                    <strong>Lokální demo režim:</strong> Žebříček zatím ukazuje jen tvoje lokální nálezy v tomto zařízení. Po připojení online serveru se automaticky přepne na živý žebříček všech hráčů a FTF.
+                </div>
+                <div class="lb-list" id="lb-list"></div>
             </div>
-            <div class="stat-tile">
-                <div class="lbl">FTF (První!)</div>
-                <div class="val accent" id="stat-ftf">0</div>
+        </section>
+
+        <!-- VIEW 3: BADGES -->
+        <section class="view" id="view-badges">
+            <div class="panel">
+                <div class="badges-grid" id="badges-grid"></div>
             </div>
-            <div class="stat-tile">
-                <div class="lbl">Výškové metry</div>
-                <div class="val" id="stat-elev">0 m</div>
-            </div>
-        </div>
-    </section>
-
-    <div class="tabs" role="tablist">
-        <button type="button" class="tab-btn is-active" data-tab="spots" role="tab" aria-selected="true">🗺️ Rozhledny</button>
-        <button type="button" class="tab-btn" data-tab="leaderboard" role="tab" aria-selected="false">🏆 Žebříček</button>
-        <button type="button" class="tab-btn" data-tab="badges" role="tab" aria-selected="false">🎖️ Odznaky</button>
-    </div>
-
-    <!-- VIEW 1: MAP & SPOTS -->
-    <section class="view is-active" id="view-spots">
-        <div class="map-shell">
-            <div id="map" aria-label="Mapa rozhleden"></div>
-        </div>
-
-        <div class="filters">
-            <div class="filter-group">
-                <button type="button" class="filter-chip is-active" data-filter="all">Všechny</button>
-                <button type="button" class="filter-chip" data-filter="found">Nalezené</button>
-                <button type="button" class="filter-chip" data-filter="missing">Chybějící</button>
-            </div>
-            <button type="button" class="filter-chip" id="locate-me-btn">📍 Zobrazit vzdálenosti</button>
-        </div>
-
-        <div class="spots-grid" id="spots-grid"></div>
-    </section>
-
-    <!-- VIEW 2: LEADERBOARD -->
-    <section class="view" id="view-leaderboard">
-        <div class="panel">
-            <div class="notice-box" id="lb-demo-notice" style="display:none;">
-                <strong>Lokální demo režim:</strong> Žebříček zatím ukazuje jen tvoje lokální nálezy v tomto zařízení. Po připojení online serveru se automaticky přepne na živý žebříček všech hráčů a FTF.
-            </div>
-            <div class="lb-list" id="lb-list"></div>
-        </div>
-    </section>
-
-    <!-- VIEW 3: BADGES -->
-    <section class="view" id="view-badges">
-        <div class="panel">
-            <div class="badges-grid" id="badges-grid"></div>
-        </div>
-    </section>
+        </section>
     </div>
 </main>
 
-<!-- MODAL: CLAIM / SCAN / NICKNAME -->
+<!-- UNIFIED MODAL (Auth / Profile / Claim / Scan) -->
 <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
-        <h2 id="modal-title">Odemknout rozhlednu</h2>
-        <p id="modal-desc">Naskenuj QR kód z nálepky, přilož NFC čip nebo zadej kód ručně.</p>
+        <h2 id="modal-title">Paw Trail</h2>
+        <p id="modal-desc"></p>
 
         <video class="qr-video" id="qr-video" playsinline muted></video>
-
-        <div class="field" id="field-nick">
-            <label for="input-nick">Tvoje přezdívka do žebříčku</label>
-            <input id="input-nick" type="text" maxlength="24" placeholder="např. Vlk_Brno" autocomplete="nickname">
-        </div>
-
-        <div class="field" id="field-code">
-            <label for="input-code">Tajný kód z nálepky</label>
-            <input id="input-code" type="text" maxlength="64" placeholder="kód z QR / NFC" autocomplete="off">
-        </div>
-
-        <div class="demo-codes" id="demo-codes" style="display:none;"></div>
+        <div id="modal-body" style="display:flex;flex-direction:column;gap:12px;"></div>
         <div class="status-msg" id="modal-status"></div>
-
         <div class="modal-actions" id="modal-actions"></div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="config.js"></script>
 <script>
 const CFG = window.KIGGS_LOV_CONFIG || { DEMO_SPOTS: [], GPS_RADIUS_METERS: 300 };
-const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase);
+const sb = IS_ONLINE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
 
-const STORE_PLAYER_ID = "kiggs_lov_player_id";
-const STORE_NICK = "kiggs_lov_nickname";
+const STORE_LOCAL_NICK = "kiggs_lov_nickname";
 const STORE_LOCAL_CLAIMS = "kiggs_lov_local_claims";
+const PENDING_CODE_KEY = "kiggs_pending_code";
 
 function getStorage(key, fallback) {
     try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
@@ -1018,19 +670,9 @@ function setStorage(key, val) {
     try { localStorage.setItem(key, val); } catch {}
 }
 
-function getOrCreatePlayerId() {
-    let id = getStorage(STORE_PLAYER_ID, "");
-    if (!id || id.length < 8) {
-        const bytes = new Uint8Array(12);
-        crypto.getRandomValues(bytes);
-        id = "p_" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-        setStorage(STORE_PLAYER_ID, id);
-    }
-    return id;
-}
-
-const playerId = getOrCreatePlayerId();
-let nickname = getStorage(STORE_NICK, "");
+let currentUser = null;      // { id, email }
+let currentProfile = null;   // { nickname, avatar_url }
+let localNick = getStorage(STORE_LOCAL_NICK, "");
 let spots = [];
 let leaderboard = [];
 let currentFilter = "all";
@@ -1040,12 +682,8 @@ let markersById = {};
 let qrStream = null;
 let qrScanLoop = null;
 
-/* Crypto SHA-256 helper (funguje i přes file:///) */
-async function sha256Hex(str) {
-    return window.kiggsSha256(str);
-}
+const GOOGLE_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.2 0-5.8-2.1-6.8-5H1.2v3.1C3.2 21.3 7.3 24 12 24Z"/><path fill="#FBBC05" d="M5.2 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.2C.4 8.2 0 10.1 0 12s.4 3.8 1.2 5.4l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3.1c1-2.9 3.6-4.9 6.8-4.9Z"/></svg>`;
 
-/* Haversine distance in meters */
 function haversineMeters(lat1, lng1, lat2, lng2) {
     const toRad = (d) => (d * Math.PI) / 180;
     const dLat = toRad(lat2 - lat1);
@@ -1061,9 +699,8 @@ function formatDistance(m) {
 
 function formatDate(iso) {
     if (!iso) return "";
-    try {
-        return new Date(iso).toLocaleDateString("cs-CZ", { day: "numeric", month: "short", year: "numeric" });
-    } catch { return ""; }
+    try { return new Date(iso).toLocaleDateString("cs-CZ", { day: "numeric", month: "short", year: "numeric" }); }
+    catch { return ""; }
 }
 
 function escapeHtml(str) {
@@ -1072,23 +709,6 @@ function escapeHtml(str) {
     }[ch]));
 }
 
-/* Supabase REST RPC helper (bez nutnosti načítat těžké SDK) */
-async function supabaseRpc(fnName, params) {
-    const url = `${CFG.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/${fnName}`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "apikey": CFG.SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${CFG.SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify(params || {})
-    });
-    if (!res.ok) throw new Error(`Supabase RPC error ${res.status}`);
-    return res.json();
-}
-
-/* Local demo storage */
 function readLocalClaims() {
     try { return JSON.parse(getStorage(STORE_LOCAL_CLAIMS, "{}")); } catch { return {}; }
 }
@@ -1096,23 +716,71 @@ function writeLocalClaims(obj) {
     setStorage(STORE_LOCAL_CLAIMS, JSON.stringify(obj));
 }
 
-/* Data loading */
+async function syncOnlineSession() {
+    const adminBtn = document.getElementById("admin-shortcut-btn");
+    if (!IS_ONLINE) {
+        if (adminBtn) adminBtn.classList.add("is-hidden");
+        return;
+    }
+    const { data: { session } } = await sb.auth.getSession();
+    if (session && session.user) {
+        currentUser = session.user;
+        const [profRes, admRes] = await Promise.all([
+            sb.rpc("ensure_my_profile", {}),
+            sb.rpc("admin_check", {})
+        ]);
+        if (profRes.data && profRes.data.ok) {
+            currentProfile = { nickname: profRes.data.nickname, avatar_url: profRes.data.avatar_url || null };
+        }
+        if (adminBtn) {
+            adminBtn.classList.toggle("is-hidden", !(admRes.data && admRes.data.ok));
+        }
+    } else {
+        currentUser = null;
+        currentProfile = null;
+        if (adminBtn) adminBtn.classList.add("is-hidden");
+    }
+    updateAccountButton();
+}
+
+function updateAccountButton() {
+    const label = document.getElementById("account-label");
+    const avatar = document.getElementById("account-avatar");
+    if (!IS_ONLINE) {
+        avatar.style.display = "none";
+        label.textContent = localNick ? `👤 ${localNick}` : "👤 Přezdívka (demo)";
+        return;
+    }
+    if (currentUser && currentProfile) {
+        if (currentProfile.avatar_url) {
+            avatar.src = currentProfile.avatar_url;
+            avatar.style.display = "block";
+        } else {
+            avatar.style.display = "none";
+        }
+        label.textContent = currentProfile.nickname;
+    } else {
+        avatar.style.display = "none";
+        label.textContent = "🔑 Přihlásit se";
+    }
+}
+
 async function loadData() {
     const modeBadge = document.getElementById("mode-badge");
     const lbNotice = document.getElementById("lb-demo-notice");
 
     if (IS_ONLINE) {
-        modeBadge.textContent = "Online • Žebříček + FTF";
+        modeBadge.textContent = currentUser ? "Online • Synchronizováno" : "Online • Nepřihlášen";
         modeBadge.classList.add("is-online");
         lbNotice.style.display = "none";
         try {
-            const [sData, lbData] = await Promise.all([
-                supabaseRpc("get_public_spots", { p_player_id: playerId }),
-                supabaseRpc("get_leaderboard", { p_limit: 30 })
+            const [sRes, lbRes] = await Promise.all([
+                sb.rpc("get_public_spots", { p_player_id: currentUser ? currentUser.id : null }),
+                sb.rpc("get_leaderboard", { p_limit: 30 })
             ]);
-            spots = Array.isArray(sData) ? sData : [];
-            leaderboard = Array.isArray(lbData) ? lbData : [];
-        } catch (err) {
+            spots = Array.isArray(sRes.data) ? sRes.data : [];
+            leaderboard = Array.isArray(lbRes.data) ? lbRes.data : [];
+        } catch {
             modeBadge.textContent = "Offline / Chyba připojení";
             modeBadge.classList.remove("is-online");
         }
@@ -1123,13 +791,8 @@ async function loadData() {
         spots = (CFG.DEMO_SPOTS || []).map((s) => {
             const c = claims[s.id];
             return {
-                id: s.id,
-                name: s.name,
-                region: s.region,
-                elevation: s.elevation,
-                lat: s.lat,
-                lng: s.lng,
-                hint: s.hint,
+                id: s.id, name: s.name, region: s.region, elevation: s.elevation,
+                lat: s.lat, lng: s.lng, hint: s.hint,
                 finders_count: c ? 1 : 0,
                 ftf_nickname: c ? c.nickname : null,
                 ftf_at: c ? c.claimed_at : null,
@@ -1141,23 +804,22 @@ async function loadData() {
                 code_hash: s.code_hash
             };
         });
-
         const myCount = spots.filter((s) => s.my_claimed).length;
         const myGps = spots.filter((s) => s.my_gps_verified).length;
         const myFtf = spots.filter((s) => s.my_is_ftf).length;
         leaderboard = myCount > 0 ? [{
-            player_id: playerId,
-            nickname: nickname || "Ty (demo)",
+            player_id: "local",
+            nickname: localNick || "Ty (demo)",
+            avatar_url: null,
             spots_count: myCount,
             gps_count: myGps,
             ftf_count: myFtf
         }] : [];
     }
-
     renderAll();
 }
 
-/* Map initialization */
+/* Map */
 function initMap() {
     if (typeof L === "undefined" || map) return;
     map = L.map("map", { zoomControl: true, attributionControl: true }).setView([49.25, 16.9], 8);
@@ -1171,8 +833,8 @@ function renderMapMarkers() {
     if (!map) return;
     Object.values(markersById).forEach((m) => m.remove());
     markersById = {};
-
     const bounds = [];
+
     spots.forEach((s) => {
         const icon = L.divIcon({
             className: "",
@@ -1180,7 +842,6 @@ function renderMapMarkers() {
             iconSize: [34, 34],
             iconAnchor: [17, 17]
         });
-
         const popupHtml = `
             <strong>${escapeHtml(s.name)}</strong><br>
             <span style="opacity:.72">${escapeHtml(s.region)} • ${s.elevation} m n. m.</span><br>
@@ -1190,9 +851,7 @@ function renderMapMarkers() {
             }
             ${s.ftf_nickname ? `<br><span style="color:#f2d32b">🥇 FTF: ${escapeHtml(s.ftf_nickname)}</span>` : ""}
         `;
-
-        const marker = L.marker([s.lat, s.lng], { icon }).addTo(map).bindPopup(popupHtml);
-        markersById[s.id] = marker;
+        markersById[s.id] = L.marker([s.lat, s.lng], { icon }).addTo(map).bindPopup(popupHtml);
         bounds.push([s.lat, s.lng]);
     });
 
@@ -1202,10 +861,8 @@ function renderMapMarkers() {
     }
 }
 
-/* Render stats, spots, leaderboard, badges */
 function renderAll() {
-    document.getElementById("nick-label").textContent = nickname || "Nastavit přezdívku";
-
+    updateAccountButton();
     const total = spots.length;
     const foundList = spots.filter((s) => s.my_claimed);
     const foundCount = foundList.length;
@@ -1234,7 +891,7 @@ function renderSpots() {
         return true;
     });
 
-    if (filtered.length === 0) {
+    if (!filtered.length) {
         grid.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;color:var(--muted);">V tomto filtru zatím žádná rozhledna není.</div>`;
         return;
     }
@@ -1250,20 +907,14 @@ function renderSpots() {
                 </div>
                 <div class="spot-stamp" aria-hidden="true">${s.my_claimed ? "🐾" : "🔒"}</div>
             </div>
-
             <div class="spot-badges">
                 ${s.my_claimed ? `<span class="tag gold">✓ Nalezeno</span>` : `<span class="tag">Čeká na objevení</span>`}
                 ${s.my_gps_verified ? `<span class="tag gps">📍 Ověřeno GPS</span>` : ""}
                 ${s.my_is_ftf ? `<span class="tag gold">🥇 Tvůj FTF</span>` : (s.ftf_nickname ? `<span class="tag">🥇 FTF: ${escapeHtml(s.ftf_nickname)}</span>` : `<span class="tag gold">✨ FTF volné!</span>`)}
             </div>
-
             <div class="spot-note">
-                ${s.my_claimed
-                    ? escapeHtml(s.secret_note || "Rozhledna úspěšně odemčena!")
-                    : `💡 ${escapeHtml(s.hint || "Hledej nálepku KIGGS přímo u rozhledny.")}`
-                }
+                ${s.my_claimed ? escapeHtml(s.secret_note || "Rozhledna odemčena!") : `💡 ${escapeHtml(s.hint || "Hledej nálepku Paw Trail přímo u rozhledny.")}`}
             </div>
-
             <div class="spot-foot">
                 <span>Nálezců celkem: ${s.finders_count || 0}</span>
                 <span>${s.my_claimed_at ? formatDate(s.my_claimed_at) : "Klikni pro zobrazení na mapě"}</span>
@@ -1291,15 +942,19 @@ function renderLeaderboard() {
         return;
     }
 
+    const myId = currentUser ? currentUser.id : "local";
     list.innerHTML = leaderboard.map((row, i) => {
         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
-        const isMe = row.player_id === playerId;
+        const isMe = row.player_id === myId;
         return `
         <div class="lb-row ${isMe ? "is-me" : ""}">
             <div class="lb-pos">${medal}</div>
-            <div>
-                <div class="lb-name">${escapeHtml(row.nickname)}${isMe ? " (ty)" : ""}</div>
-                <div class="lb-sub">FTF: ${row.ftf_count || 0}× • Ověřeno GPS: ${row.gps_count || 0}×</div>
+            <div class="lb-user">
+                ${row.avatar_url ? `<img class="lb-avatar" src="${escapeHtml(row.avatar_url)}" alt="">` : ""}
+                <div style="min-width:0;">
+                    <div class="lb-name">${escapeHtml(row.nickname)}${isMe ? " (ty)" : ""}</div>
+                    <div class="lb-sub">FTF: ${row.ftf_count || 0}× • Ověřeno GPS: ${row.gps_count || 0}×</div>
+                </div>
             </div>
             <div class="lb-score">${row.spots_count} 🐾</div>
         </div>`;
@@ -1308,14 +963,13 @@ function renderLeaderboard() {
 
 function renderBadges(found, gps, ftf, total, elev) {
     const defs = [
-        { ico: "🐾", title: "První tlapka", desc: "Najdi svou první rozhlednu s nálepkou KIGGS.", ok: found >= 1 },
+        { ico: "🐾", title: "První tlapka", desc: "Najdi svou první rozhlednu s nálepkou Paw Trail.", ok: found >= 1 },
         { ico: "📍", title: "Poctivý stopař", desc: "Získej alespoň jednou zlatý odznak Ověřeno GPS.", ok: gps >= 1 },
         { ico: "🥇", title: "První na vrcholu (FTF)", desc: "Buď úplně první nálezce některé z rozhleden.", ok: ftf >= 1 },
         { ico: "⛰️", title: "Horský vlk", desc: "Nasbírej rozhledny s celkovou výškou alespoň 1 000 m.", ok: elev >= 1000 },
         { ico: "🧭", title: "Smečka v pohybu", desc: "Odemkni alespoň 3 různé rozhledny.", ok: found >= 3 },
         { ico: "👑", title: "Král obzorů", desc: "Najdi všechny dostupné rozhledny v kolekci.", ok: total > 0 && found >= total }
     ];
-
     document.getElementById("badges-grid").innerHTML = defs.map((b) => `
         <div class="badge-card ${b.ok ? "is-unlocked" : ""}">
             <div class="badge-ico" aria-hidden="true">${b.ico}</div>
@@ -1327,25 +981,17 @@ function renderBadges(found, gps, ftf, total, elev) {
     `).join("");
 }
 
-/* Modal & Claim Flow */
+/* Modal core */
 const backdrop = document.getElementById("modal-backdrop");
 const modalTitle = document.getElementById("modal-title");
 const modalDesc = document.getElementById("modal-desc");
-const fieldNick = document.getElementById("field-nick");
-const fieldCode = document.getElementById("field-code");
-const inputNick = document.getElementById("input-nick");
-const inputCode = document.getElementById("input-code");
+const modalBody = document.getElementById("modal-body");
 const modalStatus = document.getElementById("modal-status");
 const modalActions = document.getElementById("modal-actions");
-const demoCodesEl = document.getElementById("demo-codes");
 const qrVideo = document.getElementById("qr-video");
 
 function setModalStatus(msg, type) {
-    if (!msg) {
-        modalStatus.className = "status-msg";
-        modalStatus.textContent = "";
-        return;
-    }
+    if (!msg) { modalStatus.className = "status-msg"; modalStatus.textContent = ""; return; }
     modalStatus.className = `status-msg is-visible ${type ? "is-" + type : ""}`;
     modalStatus.textContent = msg;
 }
@@ -1353,10 +999,7 @@ function setModalStatus(msg, type) {
 function stopQrScanner() {
     if (qrScanLoop) cancelAnimationFrame(qrScanLoop);
     qrScanLoop = null;
-    if (qrStream) {
-        qrStream.getTracks().forEach((t) => t.stop());
-        qrStream = null;
-    }
+    if (qrStream) { qrStream.getTracks().forEach((t) => t.stop()); qrStream = null; }
     qrVideo.classList.remove("is-active");
     qrVideo.srcObject = null;
 }
@@ -1366,13 +1009,175 @@ function closeModal() {
     backdrop.classList.remove("is-open");
 }
 
-backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) closeModal();
-});
+backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
 
-async function startCameraQr() {
+function requestGpsCoords() {
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 9000, maximumAge: 15000 }
+        );
+    });
+}
+
+/* Auth Modal (Google Sign-In + Email/Password) */
+function openAuthModal(pendingCode) {
+    stopQrScanner();
+    if (pendingCode) {
+        try { sessionStorage.setItem(PENDING_CODE_KEY, pendingCode); } catch {}
+    }
+
+    let isRegister = false;
+    modalTitle.textContent = pendingCode ? "🐾 Přihlas se pro uložení rozhledny" : "Přihlášení do Paw Trail";
+    modalDesc.textContent = "Tvůj postup se synchronizuje mezi mobilem i PC a nemusíš pokaždé vyplňovat přezdívku.";
+    setModalStatus("");
+
+    function renderAuthBody() {
+        modalBody.innerHTML = `
+            <button type="button" class="pill-btn google" id="btn-google-oauth" style="padding:12px 16px;border-radius:13px;">
+                ${GOOGLE_SVG} Pokračovat přes Google
+            </button>
+            <div class="divider">nebo e-mailem</div>
+            ${isRegister ? `<div class="field"><label for="auth-nick">Přezdívka do žebříčku</label><input id="auth-nick" type="text" maxlength="24" placeholder="např. Vlk_Brno"></div>` : ""}
+            <div class="field"><label for="auth-email">E-mail</label><input id="auth-email" type="email" autocomplete="username" placeholder="tvuj@email.cz"></div>
+            <div class="field"><label for="auth-pass">Heslo</label><input id="auth-pass" type="password" autocomplete="${isRegister ? "new-password" : "current-password"}" placeholder="alespoň 6 znaků"></div>
+        `;
+        modalActions.innerHTML = `
+            <button type="button" class="pill-btn primary" id="btn-email-submit">${isRegister ? "Vytvořit účet" : "Přihlásit se e-mailem"}</button>
+            <button type="button" class="pill-btn" id="btn-switch-mode">${isRegister ? "Už účet mám — přihlásit se" : "Nemám účet — registrovat se"}</button>
+            <button type="button" class="pill-btn" id="btn-auth-close" style="opacity:.7">Zavřít</button>
+        `;
+
+        document.getElementById("btn-google-oauth").addEventListener("click", async () => {
+            const redirectTo = window.location.origin + window.location.pathname;
+            const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+            if (error) setModalStatus(error.message, "error");
+        });
+
+        document.getElementById("btn-switch-mode").addEventListener("click", () => {
+            isRegister = !isRegister;
+            setModalStatus("");
+            renderAuthBody();
+        });
+
+        document.getElementById("btn-email-submit").addEventListener("click", async () => {
+            const email = document.getElementById("auth-email").value.trim();
+            const password = document.getElementById("auth-pass").value;
+            const nickInput = document.getElementById("auth-nick");
+            const prefNick = nickInput ? nickInput.value.trim() : "";
+
+            if (!email || password.length < 6) {
+                setModalStatus("Zadej platný e-mail a heslo (alespoň 6 znaků).", "error");
+                return;
+            }
+            setModalStatus(isRegister ? "Vytvářím účet…" : "Přihlašuji…");
+
+            if (isRegister) {
+                const { data, error } = await sb.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { nickname: prefNick || email.split("@")[0] } }
+                });
+                if (error) { setModalStatus(error.message, "error"); return; }
+                if (!data.session) {
+                    setModalStatus("Účet vytvořen! Potvrď prosím odkaz v e-mailu a pak se přihlas.", "ok");
+                    return;
+                }
+            } else {
+                const { error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) { setModalStatus("Neplatný e-mail nebo heslo.", "error"); return; }
+            }
+
+            await syncOnlineSession();
+            await loadData();
+            closeModal();
+
+            const savedCode = sessionStorage.getItem(PENDING_CODE_KEY);
+            if (savedCode) {
+                sessionStorage.removeItem(PENDING_CODE_KEY);
+                openClaimModal(savedCode);
+            }
+        });
+
+        document.getElementById("btn-auth-close").addEventListener("click", closeModal);
+    }
+
+    renderAuthBody();
+    backdrop.classList.add("is-open");
+}
+
+/* Profile Modal (for logged-in user or local demo nick) */
+function openProfileModal() {
+    stopQrScanner();
+    setModalStatus("");
+
+    if (!IS_ONLINE) {
+        modalTitle.textContent = "Tvoje přezdívka (demo)";
+        modalDesc.textContent = "V online režimu se přezdívka automaticky bere z Google účtu (a dá se kdykoliv upravit).";
+        modalBody.innerHTML = `<div class="field"><label for="prof-nick">Přezdívka</label><input id="prof-nick" type="text" maxlength="24" value="${escapeHtml(localNick)}" placeholder="např. Vlk_Brno"></div>`;
+        modalActions.innerHTML = `
+            <button type="button" class="pill-btn primary" id="prof-save">Uložit</button>
+            <button type="button" class="pill-btn" id="prof-close" style="opacity:.7">Zavřít</button>
+        `;
+        document.getElementById("prof-save").addEventListener("click", () => {
+            const v = document.getElementById("prof-nick").value.trim();
+            if (v.length < 2) { setModalStatus("Přezdívka musí mít alespoň 2 znaky.", "error"); return; }
+            localNick = v;
+            setStorage(STORE_LOCAL_NICK, localNick);
+            loadData();
+            closeModal();
+        });
+        document.getElementById("prof-close").addEventListener("click", closeModal);
+        backdrop.classList.add("is-open");
+        return;
+    }
+
+    if (!currentUser) {
+        openAuthModal("");
+        return;
+    }
+
+    modalTitle.textContent = "Tvůj profil Paw Trail";
+    modalDesc.textContent = `Přihlášen jako ${currentUser.email}. Přezdívka se zobrazuje v žebříčku i u FTF nálezů.`;
+    modalBody.innerHTML = `<div class="field"><label for="prof-nick">Přezdívka v žebříčku</label><input id="prof-nick" type="text" maxlength="24" value="${escapeHtml(currentProfile ? currentProfile.nickname : "")}"></div>`;
+    modalActions.innerHTML = `
+        <button type="button" class="pill-btn primary" id="prof-save">Uložit přezdívku</button>
+        <button type="button" class="pill-btn" id="prof-logout" style="color:#ffb4b4;border-color:rgba(255,107,107,0.35);">Odhlásit se</button>
+        <button type="button" class="pill-btn" id="prof-close" style="opacity:.7">Zavřít</button>
+    `;
+
+    document.getElementById("prof-save").addEventListener("click", async () => {
+        const val = document.getElementById("prof-nick").value.trim();
+        if (val.length < 2) { setModalStatus("Přezdívka musí mít alespoň 2 znaky.", "error"); return; }
+        setModalStatus("Ukládám…");
+        const { data, error } = await sb.rpc("update_my_profile", { p_nickname: val });
+        if (error || !data || !data.ok) {
+            setModalStatus((data && data.error) || (error && error.message) || "Nepodařilo se uložit.", "error");
+            return;
+        }
+        currentProfile.nickname = data.nickname;
+        await loadData();
+        closeModal();
+    });
+
+    document.getElementById("prof-logout").addEventListener("click", async () => {
+        await sb.auth.signOut();
+        currentUser = null;
+        currentProfile = null;
+        await loadData();
+        closeModal();
+    });
+
+    document.getElementById("prof-close").addEventListener("click", closeModal);
+    backdrop.classList.add("is-open");
+}
+
+/* Camera QR Scanner */
+async function startCameraQr(codeInputEl) {
     if (!("BarcodeDetector" in window)) {
-        setModalStatus("Tvůj prohlížeč nepodporuje přímou čtečku QR — naskenuj nálepku běžným foťákem v mobilu nebo zadej kód ručně.", "error");
+        setModalStatus("Tvůj prohlížeč nepodporuje přímou čtečku QR — naskenuj nálepku foťákem v mobilu nebo zadej kód ručně.", "error");
         return;
     }
     try {
@@ -1388,14 +1193,13 @@ async function startCameraQr() {
             try {
                 const codes = await detector.detect(qrVideo);
                 if (codes.length > 0) {
-                    const raw = codes[0].rawValue || "";
-                    let extracted = raw;
+                    let extracted = codes[0].rawValue || "";
                     try {
-                        const u = new URL(raw);
+                        const u = new URL(extracted);
                         if (u.searchParams.get("k")) extracted = u.searchParams.get("k");
                     } catch {}
                     stopQrScanner();
-                    inputCode.value = extracted;
+                    if (codeInputEl) codeInputEl.value = extracted;
                     setModalStatus("QR kód načten! Klikni na odemčení.", "ok");
                     return;
                 }
@@ -1408,32 +1212,15 @@ async function startCameraQr() {
     }
 }
 
-function requestGpsCoords() {
-    return new Promise((resolve) => {
-        if (!navigator.geolocation) return resolve(null);
-        navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 9000, maximumAge: 15000 }
-        );
-    });
-}
-
+/* Claim flow */
 async function performClaim(rawCode, withGps) {
-    const cleanNick = inputNick.value.trim();
-    const cleanCode = (rawCode || inputCode.value || "").trim();
+    const cleanCode = (rawCode || "").trim();
+    if (!cleanCode) { setModalStatus("Zadej tajný kód z nálepky.", "error"); return; }
 
-    if (cleanNick.length < 2) {
-        setModalStatus("Zadej prosím přezdívku (alespoň 2 znaky).", "error");
+    if (IS_ONLINE && !currentUser) {
+        openAuthModal(cleanCode);
         return;
     }
-    if (!cleanCode) {
-        setModalStatus("Zadej tajný kód z nálepky.", "error");
-        return;
-    }
-
-    nickname = cleanNick;
-    setStorage(STORE_NICK, nickname);
 
     let coords = null;
     if (withGps) {
@@ -1443,23 +1230,18 @@ async function performClaim(rawCode, withGps) {
     }
 
     setModalStatus("Ověřuji kód rozhledny…");
-    const codeHash = await sha256Hex(cleanCode);
+    const codeHash = await window.kiggsSha256(cleanCode);
 
     let result;
     if (IS_ONLINE) {
-        try {
-            result = await supabaseRpc("claim_spot", {
-                p_code_hash: codeHash,
-                p_player_id: playerId,
-                p_nickname: nickname,
-                p_lat: coords ? coords.lat : null,
-                p_lng: coords ? coords.lng : null,
-                p_radius_m: CFG.GPS_RADIUS_METERS || 300
-            });
-        } catch {
-            setModalStatus("Chyba spojení se serverem. Zkus to prosím za chvíli.", "error");
-            return;
-        }
+        const { data, error } = await sb.rpc("claim_spot", {
+            p_code_hash: codeHash,
+            p_lat: coords ? coords.lat : null,
+            p_lng: coords ? coords.lng : null,
+            p_radius_m: CFG.GPS_RADIUS_METERS || 300
+        });
+        if (error) { setModalStatus(error.message || "Chyba spojení se serverem.", "error"); return; }
+        result = data;
     } else {
         const match = (CFG.DEMO_SPOTS || []).find((s) => s.code_hash === codeHash);
         if (!match) {
@@ -1469,42 +1251,15 @@ async function performClaim(rawCode, withGps) {
             const dist = coords ? haversineMeters(coords.lat, coords.lng, match.lat, match.lng) : null;
             const gpsOk = dist != null && dist <= (CFG.GPS_RADIUS_METERS || 300);
             const prev = claims[match.id];
-
+            const demoName = localNick || "Stopař (demo)";
             if (prev) {
                 const upgraded = !prev.gps_verified && gpsOk;
-                if (upgraded) {
-                    prev.gps_verified = true;
-                    prev.distance_m = dist;
-                    claims[match.id] = prev;
-                    writeLocalClaims(claims);
-                }
-                result = {
-                    ok: true,
-                    already_claimed: true,
-                    upgraded_gps: upgraded,
-                    is_ftf: prev.is_ftf,
-                    gps_verified: prev.gps_verified,
-                    distance_m: dist,
-                    spot: match
-                };
+                if (upgraded) { prev.gps_verified = true; prev.distance_m = dist; claims[match.id] = prev; writeLocalClaims(claims); }
+                result = { ok: true, already_claimed: true, upgraded_gps: upgraded, is_ftf: prev.is_ftf, gps_verified: prev.gps_verified, distance_m: dist, spot: match };
             } else {
-                claims[match.id] = {
-                    nickname,
-                    gps_verified: gpsOk,
-                    distance_m: dist,
-                    is_ftf: true,
-                    claimed_at: new Date().toISOString()
-                };
+                claims[match.id] = { nickname: demoName, gps_verified: gpsOk, distance_m: dist, is_ftf: true, claimed_at: new Date().toISOString() };
                 writeLocalClaims(claims);
-                result = {
-                    ok: true,
-                    already_claimed: false,
-                    upgraded_gps: false,
-                    is_ftf: true,
-                    gps_verified: gpsOk,
-                    distance_m: dist,
-                    spot: match
-                };
+                result = { ok: true, already_claimed: false, upgraded_gps: false, is_ftf: true, gps_verified: gpsOk, distance_m: dist, spot: match };
             }
         }
     }
@@ -1521,14 +1276,12 @@ async function performClaim(rawCode, withGps) {
     const extras = [];
     if (result.is_ftf && !result.already_claimed) extras.push("🥇 První nálezce (FTF)!");
     if (result.gps_verified) extras.push(`📍 Ověřeno GPS${result.distance_m != null ? ` (${formatDistance(result.distance_m)})` : ""}`);
-    else if (withGps && result.distance_m != null) extras.push(`GPS mimo okruh (${formatDistance(result.distance_m)} od rozhledny) — odemčeno bez GPS odznaku.`);
+    else if (withGps && result.distance_m != null) extras.push(`GPS mimo okruh (${formatDistance(result.distance_m)}) — odemčeno bez GPS odznaku.`);
 
     modalTitle.textContent = result.already_claimed ? `Už máš: ${s.name}` : `🎉 Odemčeno: ${s.name}!`;
     modalDesc.textContent = s.secret_note || "Skvělá práce, rozhledna je zapsaná ve tvém pasu!";
-    fieldNick.style.display = "none";
-    fieldCode.style.display = "none";
-    demoCodesEl.style.display = "none";
-    setModalStatus(extras.join(" • ") || "Rozhledna zapsána do tvého sběratelského pasu 🐾", "ok");
+    modalBody.innerHTML = "";
+    setModalStatus(extras.join(" • ") || "Rozhledna zapsána do tvého účtu 🐾", "ok");
     modalActions.innerHTML = `<button type="button" class="pill-btn primary" id="done-btn">Zobrazit na mapě</button>`;
     document.getElementById("done-btn").addEventListener("click", () => {
         closeModal();
@@ -1542,31 +1295,35 @@ async function performClaim(rawCode, withGps) {
 
 function openClaimModal(prefilledCode) {
     stopQrScanner();
-    fieldNick.style.display = "flex";
-    fieldCode.style.display = prefilledCode ? "none" : "flex";
-    inputNick.value = nickname;
-    inputCode.value = prefilledCode || "";
+
+    if (IS_ONLINE && !currentUser) {
+        openAuthModal(prefilledCode || "");
+        return;
+    }
+
     setModalStatus("");
+    const activeName = IS_ONLINE ? (currentProfile ? currentProfile.nickname : "tvůj účet") : (localNick || "Stopař (demo)");
 
     if (prefilledCode) {
         modalTitle.textContent = "🐾 Nálepka nalezena!";
-        modalDesc.textContent = "Chceš ověřit polohu přes GPS pro zlatý odznak „Ověřeno GPS“, nebo odemknout rovnou?";
-        demoCodesEl.style.display = "none";
+        modalDesc.textContent = `Zapisuji na účet „${activeName}“. Chceš ověřit polohu přes GPS pro zlatý odznak?`;
+        modalBody.innerHTML = "";
     } else {
         modalTitle.textContent = "Odemknout rozhlednu";
-        modalDesc.textContent = "Naskenuj QR kód z nálepky nebo zadej kód ručně.";
-        if (!IS_ONLINE) {
-            demoCodesEl.style.display = "flex";
-            demoCodesEl.innerHTML = `
+        modalDesc.textContent = `Přihlášen jako „${activeName}“. Naskenuj QR kód z nálepky nebo zadej kód ručně.`;
+        modalBody.innerHTML = `
+            <div class="field">
+                <label for="claim-code">Tajný kód z nálepky</label>
+                <input id="claim-code" type="text" maxlength="64" placeholder="kód z QR / NFC" autocomplete="off">
+            </div>
+            ${!IS_ONLINE ? `<div class="demo-codes">
                 <button type="button" class="demo-chip" data-demo="kiggs-babi-demo1">Demo: Babí lom</button>
                 <button type="button" class="demo-chip" data-demo="kiggs-holedna-demo2">Demo: Holedná</button>
-            `;
-            demoCodesEl.querySelectorAll(".demo-chip").forEach((c) => {
-                c.addEventListener("click", () => { inputCode.value = c.dataset.demo; });
-            });
-        } else {
-            demoCodesEl.style.display = "none";
-        }
+            </div>` : ""}
+        `;
+        modalBody.querySelectorAll(".demo-chip").forEach((c) => {
+            c.addEventListener("click", () => { document.getElementById("claim-code").value = c.dataset.demo; });
+        });
     }
 
     modalActions.innerHTML = `
@@ -1576,46 +1333,19 @@ function openClaimModal(prefilledCode) {
         <button type="button" class="pill-btn" id="btn-close-modal" style="opacity:.7">Zavřít</button>
     `;
 
-    document.getElementById("btn-claim-gps").addEventListener("click", () => performClaim(prefilledCode, true));
-    document.getElementById("btn-claim-plain").addEventListener("click", () => performClaim(prefilledCode, false));
+    const getCode = () => prefilledCode || (document.getElementById("claim-code") ? document.getElementById("claim-code").value : "");
+    document.getElementById("btn-claim-gps").addEventListener("click", () => performClaim(getCode(), true));
+    document.getElementById("btn-claim-plain").addEventListener("click", () => performClaim(getCode(), false));
     const camBtn = document.getElementById("btn-open-cam");
-    if (camBtn) camBtn.addEventListener("click", startCameraQr);
+    if (camBtn) camBtn.addEventListener("click", () => startCameraQr(document.getElementById("claim-code")));
     document.getElementById("btn-close-modal").addEventListener("click", closeModal);
 
     backdrop.classList.add("is-open");
 }
 
-function openNickModal() {
-    stopQrScanner();
-    modalTitle.textContent = "Tvoje přezdívka";
-    modalDesc.textContent = "Pod touto přezdívkou se zobrazíš v žebříčku a jako FTF nálezce.";
-    fieldNick.style.display = "flex";
-    fieldCode.style.display = "none";
-    demoCodesEl.style.display = "none";
-    inputNick.value = nickname;
-    setModalStatus("");
-    modalActions.innerHTML = `
-        <button type="button" class="pill-btn primary" id="save-nick-btn">Uložit přezdívku</button>
-        <button type="button" class="pill-btn" id="cancel-nick-btn">Zavřít</button>
-    `;
-    document.getElementById("save-nick-btn").addEventListener("click", () => {
-        const val = inputNick.value.trim();
-        if (val.length < 2) {
-            setModalStatus("Přezdívka musí mít alespoň 2 znaky.", "error");
-            return;
-        }
-        nickname = val;
-        setStorage(STORE_NICK, nickname);
-        renderAll();
-        closeModal();
-    });
-    document.getElementById("cancel-nick-btn").addEventListener("click", closeModal);
-    backdrop.classList.add("is-open");
-}
-
-/* Events */
+/* UI events */
 document.getElementById("open-scan-btn").addEventListener("click", () => openClaimModal(""));
-document.getElementById("nick-btn").addEventListener("click", openNickModal);
+document.getElementById("account-btn").addEventListener("click", openProfileModal);
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1651,19 +1381,18 @@ document.getElementById("locate-me-btn").addEventListener("click", async (e) => 
     }
 });
 
-/* Boot & auto-detect lock status + ?k=CODE from QR / NFC */
+/* Boot */
 (async () => {
     let isEnabled = Boolean(CFG.DEFAULT_TRAIL_ENABLED);
     let teaserText = CFG.DEFAULT_TEASER_MESSAGE || "Paw Trail (Kiggs × Pobar) startuje už brzy 🐾";
 
     if (IS_ONLINE) {
+        await syncOnlineSession();
         try {
-            const st = await supabaseRpc("get_trail_status", {});
+            const { data: st } = await sb.rpc("get_trail_status", {});
             isEnabled = Boolean(st && st.enabled);
             if (st && st.teaser_message) teaserText = st.teaser_message;
-        } catch {
-            isEnabled = false;
-        }
+        } catch { isEnabled = false; }
     } else {
         const localFlag = getStorage("kiggs_trail_local_enabled", "");
         if (localFlag === "1") isEnabled = true;
@@ -1684,17 +1413,30 @@ document.getElementById("locate-me-btn").addEventListener("click", async (e) => 
     await loadData();
 
     const params = new URLSearchParams(window.location.search);
-    const scannedCode = params.get("k");
+    let scannedCode = params.get("k");
     if (scannedCode) {
-        // Smaž tajný kód z adresního řádku, aby ho nikdo omylem nesdílel ve screenshotu
         try {
             params.delete("k");
             const cleanUrl = window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
             window.history.replaceState({}, "", cleanUrl);
         } catch {}
+    } else {
+        try {
+            scannedCode = sessionStorage.getItem(PENDING_CODE_KEY) || "";
+            if (scannedCode && currentUser) sessionStorage.removeItem(PENDING_CODE_KEY);
+        } catch {}
+    }
+
+    if (scannedCode) {
         openClaimModal(scannedCode);
     }
 })();
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    });
+}
 </script>
 
 </body>

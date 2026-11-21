@@ -5,9 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#060d18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Velín">
 <title>Velín smečky — Paw Trail</title>
 
 <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../images/app-icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../images/apple-touch-icon.png">
+<link rel="manifest" href="/lov/admin.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
@@ -87,10 +94,7 @@ body {
     gap: 14px;
 }
 
-h1, h2 {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
-}
-
+h1, h2 { font-family: 'Space Grotesk', 'Inter', sans-serif; }
 h1 { font-size: 1.55rem; }
 h1 span { color: var(--accent); }
 h2 { font-size: 1.08rem; }
@@ -146,6 +150,10 @@ h2 { font-size: 1.08rem; }
     padding: 11px 16px;
     border-radius: 12px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
     transition: all 0.2s ease;
 }
 
@@ -157,6 +165,13 @@ h2 { font-size: 1.08rem; }
     border-color: transparent;
 }
 .btn.primary:hover { background: #f7dc4d; }
+
+.btn.google {
+    background: #ffffff;
+    color: #111827;
+    border-color: transparent;
+}
+.btn.google:hover { background: #f1f5f9; }
 
 .btn.green {
     background: var(--green);
@@ -170,6 +185,22 @@ h2 { font-size: 1.08rem; }
     border-color: rgba(255, 107, 107, 0.35);
 }
 .btn.danger:hover { background: rgba(255, 107, 107, 0.25); }
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.76rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
 
 .status-bar {
     display: flex;
@@ -281,7 +312,6 @@ h2 { font-size: 1.08rem; }
 
 .item-title { font-weight: 600; font-size: 0.92rem; }
 .item-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-
 .is-hidden { display: none !important; }
 
 @media (max-width: 760px) {
@@ -306,6 +336,18 @@ h2 { font-size: 1.08rem; }
         <p class="sub">Zabezpečený vstup pro <strong>Kiggs × Pobar</strong>. Přihlas se svým účtem smečky.</p>
 
         <div class="msg warn" id="local-mode-banner"></div>
+
+        <button type="button" class="btn google" id="google-login-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/>
+                <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.2 0-5.8-2.1-6.8-5H1.2v3.1C3.2 21.3 7.3 24 12 24Z"/>
+                <path fill="#FBBC05" d="M5.2 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.2C.4 8.2 0 10.1 0 12s.4 3.8 1.2 5.4l4-3.1Z"/>
+                <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.2 2.7 1.2 6.6l4 3.1c1-2.9 3.6-4.9 6.8-4.9Z"/>
+            </svg>
+            Pokračovat přes Google
+        </button>
+
+        <div class="divider">nebo e-mailem</div>
 
         <form id="login-form" style="display:flex;flex-direction:column;gap:12px;">
             <div class="field">
@@ -437,16 +479,17 @@ h2 { font-size: 1.08rem; }
     </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script src="config.js"></script>
 <script>
 const CFG = window.KIGGS_LOV_CONFIG || { SITE_URL: "https://kiggs.cz/lov/" };
-const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
-const SESSION_KEY = "kiggs_admin_jwt";
+const IS_ONLINE = Boolean(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase);
+const sb = IS_ONLINE ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
+
 const LOCAL_ENABLED_KEY = "kiggs_trail_local_enabled";
 const LOCAL_TEASER_KEY = "kiggs_trail_local_teaser";
 
-let accessToken = "";
 let localMode = false;
 let trailEnabled = false;
 let darkQrStyle = false;
@@ -476,31 +519,9 @@ function randomSecretCode() {
     return Array.from(bytes, (b) => chars[b % chars.length]).join("");
 }
 
-async function sbAuthSignIn(email, password) {
-    const url = `${CFG.SUPABASE_URL.replace(/\/+$/, "")}/auth/v1/token?grant_type=password`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": CFG.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.msg || "Neplatný e-mail nebo heslo.");
-    return data.access_token;
-}
-
 async function sbAdminRpc(fnName, params) {
-    const url = `${CFG.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/${fnName}`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "apikey": CFG.SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(params || {})
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message || data.error || `Chyba ${res.status}`);
+    const { data, error } = await sb.rpc(fnName, params || {});
+    if (error) throw new Error(error.message || "Chyba komunikace se serverem.");
     return data;
 }
 
@@ -541,7 +562,7 @@ async function loadDashboard() {
 
     const info = await sbAdminRpc("admin_check");
     if (!info || !info.ok) {
-        throw new Error((info && info.error) || "Účet nemá přístup do velína smečky.");
+        throw new Error((info && info.error) || "Tento účet nemá přístup do velína smečky.");
     }
 
     document.getElementById("admin-identity").textContent = `Přihlášen jako ${info.email} • Ověřený přístup smečky`;
@@ -570,7 +591,7 @@ async function loadDashboard() {
         spotsEl.querySelectorAll("[data-del-spot]").forEach((b) => {
             b.addEventListener("click", async () => {
                 const id = b.dataset.delSpot;
-                if (!confirm(`Opravdu smazat rozhlednu "${id}" včetně jejích nálezů?`)) return;
+                if (!confirm(`Opravdu smazat rozhlednu „${id}“ včetně jejích nálezů?`)) return;
                 try {
                     await sbAdminRpc("admin_delete_spot", { p_id: id });
                     await loadDashboard();
@@ -630,26 +651,34 @@ async function renderQr(url) {
 }
 
 /* Events */
+document.getElementById("google-login-btn").addEventListener("click", async () => {
+    if (!IS_ONLINE) {
+        showMsg("login-msg", "Online server ještě není připojený v lov/config.js (můžeš použít lokální testovací režim níže).", "warn");
+        return;
+    }
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+    if (error) showMsg("login-msg", error.message, "err");
+});
+
 document.getElementById("login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!IS_ONLINE) {
         showMsg("login-msg", "Online server ještě není připojený v lov/config.js (můžeš použít lokální testovací režim níže).", "warn");
         return;
     }
-    showMsg("login-msg", "Přihlašuji…");
+    showMsg("login-msg", "Ověřuji přístup…");
     try {
-        accessToken = await sbAuthSignIn(
-            document.getElementById("login-email").value.trim(),
-            document.getElementById("login-pass").value
-        );
-        sessionStorage.setItem(SESSION_KEY, accessToken);
+        const { error } = await sb.auth.signInWithPassword({
+            email: document.getElementById("login-email").value.trim(),
+            password: document.getElementById("login-pass").value
+        });
+        if (error) throw error;
         localMode = false;
         await loadDashboard();
         showAdminView();
         showMsg("login-msg", "");
     } catch (err) {
-        accessToken = "";
-        sessionStorage.removeItem(SESSION_KEY);
         showMsg("login-msg", err.message || "Přihlášení selhalo.", "err");
     }
 });
@@ -660,10 +689,9 @@ document.getElementById("enter-local-btn").addEventListener("click", async () =>
     showAdminView();
 });
 
-document.getElementById("logout-btn").addEventListener("click", () => {
-    accessToken = "";
+document.getElementById("logout-btn").addEventListener("click", async () => {
     localMode = false;
-    sessionStorage.removeItem(SESSION_KEY);
+    if (sb) await sb.auth.signOut();
     showLoginView();
 });
 
@@ -751,17 +779,10 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
     showMsg("spot-msg", "Ukládám rozhlednu…");
     try {
         await sbAdminRpc("admin_upsert_spot", {
-            p_id: id,
-            p_name: name,
-            p_region: region,
-            p_elevation: elev,
-            p_lat: lat,
-            p_lng: lng,
-            p_hint: hint,
-            p_secret_note: note,
-            p_code_hash: codeHash
+            p_id: id, p_name: name, p_region: region, p_elevation: elev,
+            p_lat: lat, p_lng: lng, p_hint: hint, p_secret_note: note, p_code_hash: codeHash
         });
-        showMsg("spot-msg", `✓ Rozhledna „${name}“ uložena do databáze! Teď si stáhni QR kód a zkopíruj NFC odkaz.`, "ok");
+        showMsg("spot-msg", `✓ Rozhledna „${name}“ uložena! Teď si stáhni QR kód a zkopíruj NFC odkaz.`, "ok");
         await loadDashboard();
     } catch (err) {
         showMsg("spot-msg", err.message, "err");
@@ -798,18 +819,22 @@ document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
         return;
     }
 
-    const saved = sessionStorage.getItem(SESSION_KEY);
-    if (saved) {
-        accessToken = saved;
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
         try {
             await loadDashboard();
             showAdminView();
-        } catch {
-            sessionStorage.removeItem(SESSION_KEY);
-            accessToken = "";
+        } catch (err) {
+            showMsg("login-msg", err.message || "Tento účet nemá přístup do velína smečky.", "err");
         }
     }
 })();
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    });
+}
 </script>
 
 </body>

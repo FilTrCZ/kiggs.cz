@@ -6,8 +6,9 @@
 <title>KIGGS</title>
 
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/images/app-icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.webmanifest?v=2">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#060d18">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -813,7 +814,7 @@ footer {
             </a>
         </nav>
 
-        <footer class="fade-up delay-5">© 2026 KIGGS</footer>
+        <footer class="fade-up delay-5" id="site-footer">© 2026 KIGGS</footer>
     </div>
 </main>
 
@@ -908,13 +909,16 @@ if ("serviceWorker" in navigator) {
 
     if (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY) {
         const url = `${cfg.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/rpc/get_trail_status`;
+        const headers = {
+            "Content-Type": "application/json",
+            "apikey": cfg.SUPABASE_ANON_KEY
+        };
+        if (!cfg.SUPABASE_ANON_KEY.startsWith("sb_publishable_")) {
+            headers["Authorization"] = `Bearer ${cfg.SUPABASE_ANON_KEY}`;
+        }
         fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "apikey": cfg.SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${cfg.SUPABASE_ANON_KEY}`
-            },
+            headers,
             body: "{}"
         })
             .then((r) => (r.ok ? r.json() : null))
@@ -934,6 +938,23 @@ if ("serviceWorker" in navigator) {
         } catch {
             applyTrailState(false);
         }
+    }
+
+    /* Skrytý vstup do Velína smečky pro admina v nainstalované appce (5× klepnutí na patičku) */
+    const footerEl = document.getElementById("site-footer");
+    if (footerEl) {
+        let taps = 0;
+        let tapTimer;
+        footerEl.addEventListener("click", () => {
+            taps += 1;
+            clearTimeout(tapTimer);
+            if (taps >= 5) {
+                taps = 0;
+                window.location.href = "lov/admin.html";
+                return;
+            }
+            tapTimer = window.setTimeout(() => { taps = 0; }, 1600);
+        });
     }
 })();
 </script>
