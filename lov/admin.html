@@ -261,10 +261,17 @@ h2 { font-size: 1.08rem; }
     text-align: center;
 }
 
-#qr-canvas {
+#qr-canvas,
+#sticker-canvas {
     border-radius: 14px;
-    max-width: 100%;
-    height: auto;
+    width: 100% !important;
+    max-width: 280px;
+    height: auto !important;
+    display: block;
+    background: #060d18;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+#qr-canvas {
     background: #ffffff;
 }
 
@@ -449,12 +456,17 @@ h2 { font-size: 1.08rem; }
                 <h2>🖨️ QR nálepka &amp; NFC odkaz</h2>
 
                 <div class="qr-box">
-                    <canvas id="qr-canvas" width="260" height="260"></canvas>
+                    <canvas id="sticker-canvas" width="1000" height="1200"></canvas>
+                    <canvas id="qr-canvas" width="512" height="512" class="is-hidden"></canvas>
                     <div class="row2" style="width:100%;">
-                        <button type="button" class="btn" id="qr-style-btn">Styl: Černobílý</button>
-                        <button type="button" class="btn primary" id="qr-download-btn" disabled>⬇ Stáhnout PNG</button>
+                        <button type="button" class="btn" id="preview-mode-btn">Náhled: Tisková nálepka</button>
+                        <button type="button" class="btn" id="qr-style-btn">QR: Černobílý</button>
                     </div>
-                    <p class="sub" style="font-size:0.78rem;">⚠️ Tajný kód a QR si hned ulož / zapiš do NFC — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
+                    <div class="row2" style="width:100%;">
+                        <button type="button" class="btn primary" id="sticker-download-btn" disabled>⬇ Stáhnout nálepku</button>
+                        <button type="button" class="btn" id="qr-download-btn" disabled>⬇ Jen QR kód</button>
+                    </div>
+                    <p class="sub" style="font-size:0.78rem;">⚠️ Tajný kód a nálepku si hned ulož / zapiš do NFC — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
                 </div>
 
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:var(--muted);">
@@ -493,8 +505,10 @@ const LOCAL_TEASER_KEY = "kiggs_trail_local_teaser";
 let localMode = false;
 let trailEnabled = false;
 let darkQrStyle = false;
+let showStickerPreview = true;
 let lastGeneratedUrl = "";
 let lastGeneratedSlug = "rozhledna";
+let lastSpotMeta = { name: "Paw Trail", elev: 0 };
 
 function showMsg(elId, text, type) {
     const el = document.getElementById(elId);
@@ -638,16 +652,156 @@ function showLoginView() {
     document.getElementById("login-view").classList.remove("is-hidden");
 }
 
+function drawRoundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function drawPawIcon(ctx, cx, cy, s, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    // Hlavní polštářek
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + s * 0.22, s * 0.42, s * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // 4 prsty
+    const toes = [
+        [-0.44, -0.18, -0.25],
+        [-0.16, -0.42, -0.08],
+        [0.16, -0.42, 0.08],
+        [0.44, -0.18, 0.25]
+    ];
+    toes.forEach(([dx, dy, rot]) => {
+        ctx.beginPath();
+        ctx.ellipse(cx + dx * s, cy + dy * s, s * 0.14, s * 0.20, rot, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.restore();
+}
+
+function renderStickerCard(qrCanvas, spotName, elev) {
+    const canvas = document.getElementById("sticker-canvas");
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // 1. Tmavé pozadí + jemná noční záře
+    ctx.fillStyle = "#060d18";
+    ctx.fillRect(0, 0, W, H);
+
+    const g1 = ctx.createRadialGradient(W * 0.2, H * 0.12, 20, W * 0.2, H * 0.12, W * 0.75);
+    g1.addColorStop(0, "rgba(22, 58, 138, 0.55)");
+    g1.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, W, H);
+
+    const g2 = ctx.createRadialGradient(W * 0.85, H * 0.92, 10, W * 0.85, H * 0.92, W * 0.65);
+    g2.addColorStop(0, "rgba(242, 211, 43, 0.22)");
+    g2.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Vnější žlutý rámeček s bezpečným okrajem pro ořez
+    drawRoundRect(ctx, 26, 26, W - 52, H - 52, 54);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#f2d32b";
+    ctx.stroke();
+
+    // Jemná vnitřní linka
+    drawRoundRect(ctx, 44, 44, W - 88, H - 88, 42);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.stroke();
+
+    // 3. Hlavička: PAW TRAIL + tlapky + KIGGS × POBAR
+    drawPawIcon(ctx, 132, 128, 38, "#f2d32b");
+    drawPawIcon(ctx, W - 132, 128, 38, "#f2d32b");
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#f5f7fb";
+    ctx.font = "700 80px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("PAW TRAIL", W / 2, 122);
+
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 32px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("K I G G S   ×   P O B A R", W / 2, 192);
+
+    // 4. Bílý vysoce kontrastní box pro QR kód (vždy čistě černobílý pro 100% čitelnost venku!)
+    const boxSize = 650;
+    const boxX = (W - boxSize) / 2;
+    const boxY = 248;
+    drawRoundRect(ctx, boxX, boxY, boxSize, boxSize, 38);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    // QR kód dovnitř boxu s bezpečnou tichou zónou
+    const qrPad = 36;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(qrCanvas, boxX + qrPad, boxY + qrPad, boxSize - qrPad * 2, boxSize - qrPad * 2);
+    ctx.imageSmoothingEnabled = true;
+
+    // 5. Patička: výzva k naskenování + název rozhledny + web
+    drawRoundRect(ctx, 140, 938, W - 280, 62, 31);
+    ctx.fillStyle = "rgba(242, 211, 43, 0.16)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(242, 211, 43, 0.55)";
+    ctx.stroke();
+
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 28px 'Inter', Arial, sans-serif";
+    ctx.fillText("NASKENUJ QR  •  PŘILOŽ NFC", W / 2, 970);
+
+    // Název rozhledny (s automatickým zmenšením písma, pokud je dlouhý)
+    let title = spotName || "Paw Trail";
+    if (elev > 0) title += ` (${elev} m)`;
+    let fontSize = 36;
+    ctx.font = `600 ${fontSize}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    while (ctx.measureText(title).width > W - 130 && fontSize > 22) {
+        fontSize -= 2;
+        ctx.font = `600 ${fontSize}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    }
+    ctx.fillStyle = "#f5f7fb";
+    ctx.fillText(title, W / 2, 1054);
+
+    ctx.fillStyle = "rgba(226, 232, 240, 0.58)";
+    ctx.font = "600 25px 'Inter', Arial, sans-serif";
+    ctx.fillText("kiggs.cz/lov", W / 2, 1114);
+}
+
 async function renderQr(url) {
     const canvas = document.getElementById("qr-canvas");
     if (typeof QRCode === "undefined") return;
+
+    // 1. Samostatný QR (černobílý nebo Kiggs×Pobar)
     await QRCode.toCanvas(canvas, url, {
         width: 512,
         margin: 2,
         errorCorrectionLevel: "H",
         color: darkQrStyle ? { dark: "#f2d32b", light: "#060d18" } : { dark: "#000000", light: "#ffffff" }
     });
+    // Zruš inline rozměry z QR knihovny, aby CSS nezkreslovalo poměr stran
+    canvas.style.width = "";
+    canvas.style.height = "";
+
+    // 2. Pro tiskovou nálepku vygeneruj vždy vysoce kontrastní černobílý QR na pomocný canvas
+    const bwCanvas = document.createElement("canvas");
+    await QRCode.toCanvas(bwCanvas, url, {
+        width: 580,
+        margin: 1,
+        errorCorrectionLevel: "H",
+        color: { dark: "#000000", light: "#ffffff" }
+    });
+    renderStickerCard(bwCanvas, lastSpotMeta.name, lastSpotMeta.elev);
+
     document.getElementById("qr-download-btn").disabled = false;
+    document.getElementById("sticker-download-btn").disabled = false;
 }
 
 /* Events */
@@ -768,6 +922,7 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
 
     lastGeneratedUrl = fullUrl;
     lastGeneratedSlug = id;
+    lastSpotMeta = { name, elev };
     document.getElementById("out-url").textContent = fullUrl;
     await renderQr(fullUrl);
 
@@ -789,10 +944,24 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
     }
 });
 
+document.getElementById("preview-mode-btn").addEventListener("click", (e) => {
+    showStickerPreview = !showStickerPreview;
+    document.getElementById("sticker-canvas").classList.toggle("is-hidden", !showStickerPreview);
+    document.getElementById("qr-canvas").classList.toggle("is-hidden", showStickerPreview);
+    e.currentTarget.textContent = showStickerPreview ? "Náhled: Tisková nálepka" : "Náhled: Jen QR kód";
+});
+
 document.getElementById("qr-style-btn").addEventListener("click", async (e) => {
     darkQrStyle = !darkQrStyle;
-    e.currentTarget.textContent = darkQrStyle ? "Styl: Kiggs × Pobar" : "Styl: Černobílý";
+    e.currentTarget.textContent = darkQrStyle ? "QR: Kiggs × Pobar" : "QR: Černobílý";
     if (lastGeneratedUrl) await renderQr(lastGeneratedUrl);
+});
+
+document.getElementById("sticker-download-btn").addEventListener("click", () => {
+    const link = document.createElement("a");
+    link.download = `pawtrail-nalepka-${lastGeneratedSlug}.png`;
+    link.href = document.getElementById("sticker-canvas").toDataURL("image/png");
+    link.click();
 });
 
 document.getElementById("qr-download-btn").addEventListener("click", () => {
