@@ -125,7 +125,8 @@ h2 { font-size: 1.08rem; }
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
     width: 100%;
     padding: 11px 13px;
     border-radius: 12px;
@@ -137,7 +138,26 @@ h2 { font-size: 1.08rem; }
 }
 
 .field textarea { min-height: 68px; resize: vertical; }
-.field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.84rem;
+    color: var(--text);
+    cursor: pointer;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: rgba(6, 13, 24, 0.56);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.check-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+}
 
 .btn {
     appearance: none;
@@ -404,10 +424,13 @@ h2 { font-size: 1.08rem; }
             <div class="msg" id="status-msg"></div>
         </section>
 
-        <!-- ADD SPOT + QR/NFC GENERATOR -->
+        <!-- ADD / EDIT SPOT + QR/NFC GENERATOR -->
         <div class="grid">
-            <section class="panel">
-                <h2>➕ Přidat rozhlednu &amp; vygenerovat QR / NFC</h2>
+            <section class="panel" id="spot-form-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <h2 id="spot-form-title">➕ Přidat rozhlednu &amp; vygenerovat QR / NFC</h2>
+                    <button type="button" class="btn is-hidden" id="cancel-edit-btn" style="padding:6px 11px;font-size:0.78rem;">✕ Zrušit úpravu</button>
+                </div>
 
                 <div class="field">
                     <label for="f-name">Název rozhledny</label>
@@ -447,6 +470,11 @@ h2 { font-size: 1.08rem; }
                     <label for="f-note">Tajný vzkaz (zobrazí se po odemčení)</label>
                     <textarea id="f-note" placeholder="Skvělý výstup! Pozdravují Kiggs × Pobar 🐾"></textarea>
                 </div>
+
+                <label id="rotate-code-wrap" class="is-hidden" style="display:flex;align-items:center;gap:9px;font-size:0.83rem;color:#fde68a;cursor:pointer;padding:10px 12px;border-radius:12px;background:rgba(242,211,43,0.08);border:1px solid rgba(242,211,43,0.28);">
+                    <input id="f-rotate-code" type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);">
+                    <span>🔄 Vygenerovat nový QR / NFC kód (pozor: stará nálepka přestane fungovat)</span>
+                </label>
 
                 <div class="msg" id="spot-msg"></div>
                 <button type="button" class="btn primary" id="create-spot-btn">⚡ Uložit rozhlednu &amp; vygenerovat QR/NFC</button>
@@ -509,6 +537,8 @@ let showStickerPreview = true;
 let lastGeneratedUrl = "";
 let lastGeneratedSlug = "rozhledna";
 let lastSpotMeta = { name: "Paw Trail", elev: 0 };
+let loadedSpots = [];
+let editingSpotId = null;
 
 function showMsg(elId, text, type) {
     const el = document.getElementById(elId);
@@ -587,20 +617,28 @@ async function loadDashboard() {
         sbAdminRpc("admin_list_spots"),
         sbAdminRpc("admin_list_claims", { p_limit: 25 })
     ]);
+    loadedSpots = Array.isArray(spots) ? spots : [];
 
     const spotsEl = document.getElementById("spots-list");
-    if (!spots.length) {
+    if (!loadedSpots.length) {
         spotsEl.innerHTML = `<p class="sub">Zatím nemáš přidanou žádnou rozhlednu. Přidej první výše!</p>`;
     } else {
-        spotsEl.innerHTML = spots.map((s) => `
+        spotsEl.innerHTML = loadedSpots.map((s) => `
             <div class="item-row">
                 <div>
                     <div class="item-title">${escapeHtml(s.name)}</div>
                     <div class="item-meta">${escapeHtml(s.region)} • ${s.elevation} m • Nálezců: ${s.finders_count}${s.ftf_nickname ? ` • 🥇 FTF: ${escapeHtml(s.ftf_nickname)}` : ""}</div>
                 </div>
-                <button type="button" class="btn danger" data-del-spot="${escapeHtml(s.id)}" style="padding:6px 11px;font-size:0.78rem;">Smazat</button>
+                <div style="display:flex;gap:6px;">
+                    <button type="button" class="btn" data-edit-spot="${escapeHtml(s.id)}" style="padding:6px 11px;font-size:0.78rem;">✏️ Upravit</button>
+                    <button type="button" class="btn danger" data-del-spot="${escapeHtml(s.id)}" style="padding:6px 11px;font-size:0.78rem;">Smazat</button>
+                </div>
             </div>
         `).join("");
+
+        spotsEl.querySelectorAll("[data-edit-spot]").forEach((b) => {
+            b.addEventListener("click", () => startEditSpot(b.dataset.editSpot));
+        });
 
         spotsEl.querySelectorAll("[data-del-spot]").forEach((b) => {
             b.addEventListener("click", async () => {
@@ -608,6 +646,7 @@ async function loadDashboard() {
                 if (!confirm(`Opravdu smazat rozhlednu „${id}“ včetně jejích nálezů?`)) return;
                 try {
                     await sbAdminRpc("admin_delete_spot", { p_id: id });
+                    if (editingSpotId === id) resetSpotForm();
                     await loadDashboard();
                 } catch (e) { alert(e.message); }
             });
@@ -900,6 +939,42 @@ document.getElementById("gps-here-btn").addEventListener("click", (e) => {
     );
 });
 
+function startEditSpot(id) {
+    const s = loadedSpots.find((x) => x.id === id);
+    if (!s) return;
+    editingSpotId = s.id;
+    document.getElementById("f-name").value = s.name || "";
+    document.getElementById("f-region").value = s.region || "";
+    document.getElementById("f-elev").value = s.elevation ?? "";
+    document.getElementById("f-lat").value = s.lat ?? "";
+    document.getElementById("f-lng").value = s.lng ?? "";
+    document.getElementById("f-hint").value = s.hint || "";
+    document.getElementById("f-note").value = s.secret_note || "";
+    document.getElementById("f-rotate-code").checked = false;
+
+    document.getElementById("spot-form-title").textContent = `✏️ Upravit: ${s.name}`;
+    document.getElementById("create-spot-btn").textContent = "💾 Uložit změny rozhledny";
+    document.getElementById("cancel-edit-btn").classList.remove("is-hidden");
+    document.getElementById("rotate-code-wrap").classList.remove("is-hidden");
+    showMsg("spot-msg", "Upravuješ existující rozhlednu — stávající QR / NFC kód zůstane platný, pokud nezaškrtneš vygenerování nového.", "warn");
+    document.getElementById("spot-form-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetSpotForm() {
+    editingSpotId = null;
+    ["f-name", "f-region", "f-elev", "f-lat", "f-lng", "f-hint", "f-note"].forEach((id) => {
+        document.getElementById(id).value = "";
+    });
+    document.getElementById("f-rotate-code").checked = false;
+    document.getElementById("spot-form-title").textContent = "➕ Přidat rozhlednu & vygenerovat QR / NFC";
+    document.getElementById("create-spot-btn").textContent = "⚡ Uložit rozhlednu & vygenerovat QR/NFC";
+    document.getElementById("cancel-edit-btn").classList.add("is-hidden");
+    document.getElementById("rotate-code-wrap").classList.add("is-hidden");
+    showMsg("spot-msg", "");
+}
+
+document.getElementById("cancel-edit-btn").addEventListener("click", resetSpotForm);
+
 document.getElementById("create-spot-btn").addEventListener("click", async () => {
     const name = document.getElementById("f-name").value.trim();
     const region = document.getElementById("f-region").value.trim();
@@ -914,30 +989,42 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
         return;
     }
 
-    const id = slugify(name);
-    const secretCode = randomSecretCode();
-    const codeHash = await window.kiggsSha256(secretCode);
-    const base = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
-    const fullUrl = `${base}?k=${secretCode}`;
+    const isEditing = Boolean(editingSpotId);
+    const shouldGenerateCode = !isEditing || document.getElementById("f-rotate-code").checked;
+    const id = isEditing ? editingSpotId : slugify(name);
 
-    lastGeneratedUrl = fullUrl;
-    lastGeneratedSlug = id;
-    lastSpotMeta = { name, elev };
-    document.getElementById("out-url").textContent = fullUrl;
-    await renderQr(fullUrl);
+    let codeHash = null;
+    if (shouldGenerateCode) {
+        const secretCode = randomSecretCode();
+        codeHash = await window.kiggsSha256(secretCode);
+        const base = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
+        const fullUrl = `${base}?k=${secretCode}`;
+
+        lastGeneratedUrl = fullUrl;
+        lastGeneratedSlug = id;
+        lastSpotMeta = { name, elev };
+        document.getElementById("out-url").textContent = fullUrl;
+        await renderQr(fullUrl);
+    }
 
     if (localMode) {
         showMsg("spot-msg", `Vygenerován QR a NFC odkaz pro „${name}“ (lokální režim — na server se uloží až po připojení databáze).`, "warn");
         return;
     }
 
-    showMsg("spot-msg", "Ukládám rozhlednu…");
+    showMsg("spot-msg", isEditing ? "Ukládám změny rozhledny…" : "Ukládám rozhlednu…");
     try {
         await sbAdminRpc("admin_upsert_spot", {
             p_id: id, p_name: name, p_region: region, p_elevation: elev,
             p_lat: lat, p_lng: lng, p_hint: hint, p_secret_note: note, p_code_hash: codeHash
         });
-        showMsg("spot-msg", `✓ Rozhledna „${name}“ uložena! Teď si stáhni QR kód a zkopíruj NFC odkaz.`, "ok");
+        const okText = isEditing
+            ? (shouldGenerateCode
+                ? `✓ Rozhledna „${name}“ upravena a byl vygenerován NOVÝ QR / NFC kód (stáhni novou nálepku)!`
+                : `✓ Změny u rozhledny „${name}“ uloženy (stávající nálepka zůstává platná).`)
+            : `✓ Rozhledna „${name}“ uložena! Teď si stáhni nálepku a zkopíruj NFC odkaz.`;
+        resetSpotForm();
+        showMsg("spot-msg", okText, "ok");
         await loadDashboard();
     } catch (err) {
         showMsg("spot-msg", err.message, "err");
