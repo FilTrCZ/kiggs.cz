@@ -424,11 +424,11 @@ h2 { font-size: 1.08rem; }
             <div class="msg" id="status-msg"></div>
         </section>
 
-        <!-- ADD / EDIT SPOT + QR/NFC GENERATOR -->
+        <!-- ADD / EDIT SPOT + QR GENERATOR -->
         <div class="grid">
             <section class="panel" id="spot-form-panel">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <h2 id="spot-form-title">➕ Přidat rozhlednu &amp; vygenerovat QR / NFC</h2>
+                    <h2 id="spot-form-title">➕ Přidat rozhlednu &amp; vygenerovat QR</h2>
                     <button type="button" class="btn is-hidden" id="cancel-edit-btn" style="padding:6px 11px;font-size:0.78rem;">✕ Zrušit úpravu</button>
                 </div>
 
@@ -473,15 +473,15 @@ h2 { font-size: 1.08rem; }
 
                 <label id="rotate-code-wrap" class="is-hidden" style="display:flex;align-items:center;gap:9px;font-size:0.83rem;color:#fde68a;cursor:pointer;padding:10px 12px;border-radius:12px;background:rgba(242,211,43,0.08);border:1px solid rgba(242,211,43,0.28);">
                     <input id="f-rotate-code" type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);">
-                    <span>🔄 Vygenerovat nový QR / NFC kód (pozor: stará nálepka přestane fungovat)</span>
+                    <span>🔄 Vygenerovat nový QR kód (pozor: stará nálepka přestane fungovat)</span>
                 </label>
 
                 <div class="msg" id="spot-msg"></div>
-                <button type="button" class="btn primary" id="create-spot-btn">⚡ Uložit rozhlednu &amp; vygenerovat QR/NFC</button>
+                <button type="button" class="btn primary" id="create-spot-btn">⚡ Uložit rozhlednu &amp; vygenerovat QR</button>
             </section>
 
             <section class="panel">
-                <h2>🖨️ QR nálepka &amp; NFC odkaz</h2>
+                <h2>🖨️ QR nálepka k tisku</h2>
 
                 <div class="qr-box">
                     <canvas id="sticker-canvas" width="1000" height="1200"></canvas>
@@ -494,11 +494,11 @@ h2 { font-size: 1.08rem; }
                         <button type="button" class="btn primary" id="sticker-download-btn" disabled>⬇ Stáhnout nálepku</button>
                         <button type="button" class="btn" id="qr-download-btn" disabled>⬇ Jen QR kód</button>
                     </div>
-                    <p class="sub" style="font-size:0.78rem;">⚠️ Tajný kód a nálepku si hned ulož / zapiš do NFC — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
+                    <p class="sub" style="font-size:0.78rem;">⚠️ Nálepku nebo odkaz si hned ulož — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
                 </div>
 
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:var(--muted);">
-                    <span>URL pro zápis do NFC čipu (NFC Tools):</span>
+                    <span>Odkaz v QR kódu (pro zálohu):</span>
                     <button type="button" class="btn" id="copy-url-btn" style="padding:4px 10px;font-size:0.74rem;">Kopírovat</button>
                 </div>
                 <div class="code-block" id="out-url">Zatím nevygenerováno</div>
@@ -903,8 +903,8 @@ function renderStickerCard(qrCanvas, spotName, elev) {
     ctx.stroke();
 
     ctx.fillStyle = "#f2d32b";
-    ctx.font = "700 28px 'Inter', Arial, sans-serif";
-    ctx.fillText("NASKENUJ QR  •  PŘILOŽ NFC", W / 2, 970);
+    ctx.font = "700 30px 'Inter', Arial, sans-serif";
+    ctx.fillText("NASKENUJ QR KÓD", W / 2, 970);
 
     // Název rozhledny (s automatickým zmenšením písma, pokud je dlouhý)
     let title = spotName || "Paw Trail";
@@ -1065,7 +1065,7 @@ function startEditSpot(id) {
     document.getElementById("create-spot-btn").textContent = "💾 Uložit změny rozhledny";
     document.getElementById("cancel-edit-btn").classList.remove("is-hidden");
     document.getElementById("rotate-code-wrap").classList.remove("is-hidden");
-    showMsg("spot-msg", "Upravuješ existující rozhlednu — stávající QR / NFC kód zůstane platný, pokud nezaškrtneš vygenerování nového.", "warn");
+    showMsg("spot-msg", "Upravuješ existující rozhlednu — stávající QR kód zůstane platný, pokud nezaškrtneš vygenerování nového.", "warn");
     document.getElementById("spot-form-panel").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -1075,8 +1075,8 @@ function resetSpotForm() {
         document.getElementById(id).value = "";
     });
     document.getElementById("f-rotate-code").checked = false;
-    document.getElementById("spot-form-title").textContent = "➕ Přidat rozhlednu & vygenerovat QR / NFC";
-    document.getElementById("create-spot-btn").textContent = "⚡ Uložit rozhlednu & vygenerovat QR/NFC";
+    document.getElementById("spot-form-title").textContent = "➕ Přidat rozhlednu & vygenerovat QR";
+    document.getElementById("create-spot-btn").textContent = "⚡ Uložit rozhlednu & vygenerovat QR";
     document.getElementById("cancel-edit-btn").classList.add("is-hidden");
     document.getElementById("rotate-code-wrap").classList.add("is-hidden");
     showMsg("spot-msg", "");
@@ -1117,7 +1117,7 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
     }
 
     if (localMode) {
-        showMsg("spot-msg", `Vygenerován QR a NFC odkaz pro „${name}“ (lokální režim — na server se uloží až po připojení databáze).`, "warn");
+        showMsg("spot-msg", `Vygenerován QR kód pro „${name}“ (lokální režim — na server se uloží až po připojení databáze).`, "warn");
         return;
     }
 
@@ -1129,9 +1129,9 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
         });
         const okText = isEditing
             ? (shouldGenerateCode
-                ? `✓ Rozhledna „${name}“ upravena a byl vygenerován NOVÝ QR / NFC kód (stáhni novou nálepku)!`
+                ? `✓ Rozhledna „${name}“ upravena a byl vygenerován NOVÝ QR kód (stáhni novou nálepku)!`
                 : `✓ Změny u rozhledny „${name}“ uloženy (stávající nálepka zůstává platná).`)
-            : `✓ Rozhledna „${name}“ uložena! Teď si stáhni nálepku a zkopíruj NFC odkaz.`;
+            : `✓ Rozhledna „${name}“ uložena! Teď si stáhni nálepku nebo QR kód.`;
         resetSpotForm();
         showMsg("spot-msg", okText, "ok");
         await loadDashboard();
