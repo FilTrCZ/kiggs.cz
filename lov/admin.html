@@ -708,6 +708,7 @@ let loadedPlayers = [];
 let loadedAdmins = [];
 let playersRpcReady = true;
 let adminsRpcReady = true;
+let usersFilter = "all";
 let editingSpotId = null;
 
 function showMsg(elId, text, type) {
@@ -802,85 +803,205 @@ function renderGrantSpotOptions() {
     }
 }
 
-function renderAdminsSection() {
-    const sel = document.getElementById("admin-pick-player");
-    const listEl = document.getElementById("admins-list");
-    const addPlayerBtn = document.getElementById("add-admin-player-btn");
+function renderUsersSection() {
+    const listEl = document.getElementById("users-list");
+    const pendingEl = document.getElementById("pending-admins-list");
+    const counterEl = document.getElementById("users-counter");
+    const query = (document.getElementById("users-search").value || "").trim().toLowerCase();
 
     if (localMode) {
-        sel.innerHTML = `<option value="">Dostupné po připojení online databáze</option>`;
-        sel.disabled = true;
-        addPlayerBtn.disabled = true;
-        listEl.innerHTML = `<p class="sub">Správa administrátorů funguje v online režimu.</p>`;
+        counterEl.textContent = "Lokální režim";
+        listEl.innerHTML = `<p class="sub">Správa uživatelů funguje po připojení online databáze.</p>`;
+        pendingEl.innerHTML = "";
         return;
     }
 
-    if (!adminsRpcReady) {
-        sel.innerHTML = `<option value="">Nejprve aktualizuj databázové funkce</option>`;
-        sel.disabled = true;
-        addPlayerBtn.disabled = true;
+    if (!playersRpcReady) {
+        counterEl.textContent = "Chybí SQL update";
         listEl.innerHTML = "";
+        pendingEl.innerHTML = "";
         return;
     }
 
     const adminEmails = new Set(loadedAdmins.map((a) => (a.email || "").toLowerCase()));
-    const candidates = loadedPlayers.filter((p) => p.email && !adminEmails.has(p.email.toLowerCase()));
+    const enriched = loadedPlayers.map((p) => {
+        const isAdmin = p.is_admin !== undefined ? Boolean(p.is_admin) : adminEmails.has((p.email || "").toLowerCase());
+        return { ...p, is_admin: isAdmin, ftf_count: p.ftf_count ?? 0 };
+    });
 
-    if (!candidates.length) {
-        sel.innerHTML = `<option value="">${loadedPlayers.length ? "Všichni registrovaní hráči už jsou správci" : "Zatím nejsou žádní další hráči"}</option>`;
-        sel.disabled = true;
-        addPlayerBtn.disabled = true;
+    const adminsCount = enriched.filter((u) => u.is_admin).length;
+    counterEl.textContent = `${enriched.length} uživatelů • ${adminsCount} adminů`;
+
+    const filtered = enriched.filter((u) => {
+        if (usersFilter === "admins" && !u.is_admin) return false;
+        if (usersFilter === "active" && !(Number(u.claims_count) > 0)) return false;
+        if (!query) return true;
+        return (u.nickname || "").toLowerCase().includes(query) || (u.email || "").toLowerCase().includes(query);
+    });
+
+    if (!filtered.length) {
+        listEl.innerHTML = `<p class="sub">${enriched.length ? "Žádný uživatel neodpovídá filtru." : "Zatím nejsou žádní registrovaní uživatelé."}</p>`;
     } else {
-        sel.disabled = false;
-        addPlayerBtn.disabled = false;
-        sel.innerHTML = candidates.map((p) => {
-            const label = `${p.nickname || "Stopař"} (${p.email})`;
-            return `<option value="${escapeHtml(p.email)}">${escapeHtml(label)}</option>`;
-        }).join("");
-    }
+        listEl.innerHTML = filtered.map((u) => {
+            const nick = u.nickname || "Stopař";
+            const initial = (nick.trim()[0] || "🐾").toUpperCase();
+            const avatarHtml = u.avatar_url
+                ? `<img class="user-avatar" src="${escapeHtml(u.avatar_url)}" alt="" referrerpolicy="no-referrer">`
+                : `<div class="user-avatar">${escapeHtml(initial)}</div>`;
+            const regDate = u.created_at ? new Date(u.created_at).toLocaleDateString("cs-CZ") : "";
+            const metaParts = [
+                u.email || "bez e-mailu",
+                `${u.claims_count} rozhleden`,
+                u.ftf_count > 0 ? `🥇 ${u.ftf_count} FTF` : null,
+                regDate ? `reg. ${regDate}` : null
+            ].filter(Boolean).join(" • ");
 
-    if (!loadedAdmins.length) {
-        listEl.innerHTML = `<p class="sub">Žádní správci.</p>`;
-        return;
-    }
+            const badges = [
+                u.is_admin ? `<span class="badge-chip">🛡️ Admin</span>` : "",
+                u.is_me ? `<span class="badge-chip me">Ty</span>` : ""
+            ].join("");
 
-    listEl.innerHTML = loadedAdmins.map((a) => {
-        const title = a.nickname ? `${a.nickname} (${a.email})` : a.email;
-        const meta = a.is_me
-            ? "Tvůj přihlášený účet"
-            : (a.registered ? "Aktivní účet" : "Čeká na první přihlášení");
-        const action = a.is_me
-            ? `<span class="pill" style="font-size:0.74rem;padding:5px 10px;cursor:default;">🛡️ Ty</span>`
-            : `<button type="button" class="btn danger" data-remove-admin="${escapeHtml(a.email)}" style="padding:6px 11px;font-size:0.78rem;">Odebrat práva</button>`;
-        return `
-            <div class="item-row">
-                <div>
-                    <div class="item-title">${escapeHtml(title)}</div>
-                    <div class="item-meta">${escapeHtml(meta)}</div>
+            const adminBtn = u.is_me || !u.email
+                ? ""
+                : (u.is_admin
+                    ? `<button type="button" class="btn sm danger" data-user-unadmin="${escapeHtml(u.email)}">Odebrat admina</button>`
+                    : `<button type="button" class="btn sm" data-user-makeadmin="${escapeHtml(u.email)}">🛡️ + Admin</button>`);
+
+            const clearPhotoBtn = u.avatar_url
+                ? `<button type="button" class="btn sm" data-user-clearphoto="${escapeHtml(u.user_id)}" data-user-nick="${escapeHtml(nick)}">🖼️ Smazat foto</button>`
+                : "";
+
+            const deleteBtn = (!u.is_me && !u.is_admin)
+                ? `<button type="button" class="btn sm danger" data-user-delete="${escapeHtml(u.user_id)}" data-user-label="${escapeHtml(nick + (u.email ? ` (${u.email})` : ""))}">Smazat</button>`
+                : "";
+
+            return `
+                <div class="user-row${u.is_admin ? " is-admin" : ""}">
+                    <div class="user-top">
+                        ${avatarHtml}
+                        <div class="user-info">
+                            <div class="user-name-line">
+                                <span class="item-title">${escapeHtml(nick)}</span>
+                                ${badges}
+                            </div>
+                            <div class="item-meta">${escapeHtml(metaParts)}</div>
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button type="button" class="btn sm" data-user-grant="${escapeHtml(u.user_id)}">🏅 + Rozhledna</button>
+                        <button type="button" class="btn sm" data-user-rename="${escapeHtml(u.user_id)}" data-user-nick="${escapeHtml(nick)}">✏️ Přezdívka</button>
+                        ${clearPhotoBtn}
+                        ${adminBtn}
+                        ${deleteBtn}
+                    </div>
                 </div>
-                ${action}
-            </div>
-        `;
-    }).join("");
+            `;
+        }).join("");
 
-    listEl.querySelectorAll("[data-remove-admin]").forEach((b) => {
-        b.addEventListener("click", async () => {
-            const email = b.dataset.removeAdmin;
-            if (!confirm(`Opravdu odebrat admin práva účtu „${email}“?`)) return;
-            showMsg("admins-msg", "Odebírám admin práva…");
-            try {
-                const res = await sbAdminRpc("admin_remove_admin", { p_email: email });
-                if (!res || !res.ok) {
-                    showMsg("admins-msg", (res && res.error) || "Odebrání se nepodařilo.", "err");
+        listEl.querySelectorAll("[data-user-grant]").forEach((b) => {
+            b.addEventListener("click", () => {
+                document.getElementById("grant-player-filter").value = "";
+                renderGrantPlayerOptions();
+                document.getElementById("grant-player").value = b.dataset.userGrant;
+                document.getElementById("manual-claim-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        });
+
+        listEl.querySelectorAll("[data-user-rename]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                const uid = b.dataset.userRename;
+                const oldNick = b.dataset.userNick || "";
+                const next = prompt(`Nová přezdívka pro „${oldNick}“ (2–24 znaků):`, oldNick);
+                if (next === null) return;
+                const clean = next.trim();
+                if (clean.length < 2 || clean.length > 24) {
+                    showMsg("users-msg", "Přezdívka musí mít 2 až 24 znaků.", "err");
                     return;
                 }
-                showMsg("admins-msg", `✓ Admin práva odebrána účtu „${res.email}“.`, "ok");
-                await loadDashboard();
-            } catch (err) {
-                showMsg("admins-msg", err.message || "Chyba při odebírání práv.", "err");
-            }
+                showMsg("users-msg", "Ukládám novou přezdívku…");
+                try {
+                    const res = await sbAdminRpc("admin_update_player", { p_user_id: uid, p_nickname: clean, p_clear_avatar: false });
+                    if (!res || !res.ok) {
+                        showMsg("users-msg", (res && res.error) || "Změna přezdívky selhala.", "err");
+                        return;
+                    }
+                    showMsg("users-msg", `✓ Přezdívka změněna na „${res.nickname}“.`, "ok");
+                    await loadDashboard();
+                } catch (err) {
+                    showMsg("users-msg", err.message || "Chyba při změně přezdívky.", "err");
+                }
+            });
         });
-    });
+
+        listEl.querySelectorAll("[data-user-clearphoto]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                const uid = b.dataset.userClearphoto;
+                const nick = b.dataset.userNick || "";
+                if (!confirm(`Smazat profilovou fotku hráče „${nick}“?`)) return;
+                showMsg("users-msg", "Mažu profilovou fotku…");
+                try {
+                    const res = await sbAdminRpc("admin_update_player", { p_user_id: uid, p_nickname: null, p_clear_avatar: true });
+                    if (!res || !res.ok) {
+                        showMsg("users-msg", (res && res.error) || "Smazání fotky selhalo.", "err");
+                        return;
+                    }
+                    showMsg("users-msg", `✓ Profilová fotka hráče „${nick}“ smazána.`, "ok");
+                    await loadDashboard();
+                } catch (err) {
+                    showMsg("users-msg", err.message || "Chyba při mazání fotky.", "err");
+                }
+            });
+        });
+
+        listEl.querySelectorAll("[data-user-makeadmin]").forEach((b) => {
+            b.addEventListener("click", () => handleAddAdmin(b.dataset.userMakeadmin));
+        });
+
+        listEl.querySelectorAll("[data-user-unadmin]").forEach((b) => {
+            b.addEventListener("click", () => handleRemoveAdmin(b.dataset.userUnadmin));
+        });
+
+        listEl.querySelectorAll("[data-user-delete]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                const uid = b.dataset.userDelete;
+                const label = b.dataset.userLabel || uid;
+                if (!confirm(`Opravdu TRVALE smazat uživatele „${label}“ včetně všech jeho nálezů?`)) return;
+                if (!confirm(`Potvrzení podruhé: Smazat účet „${label}“ nevratně?`)) return;
+                showMsg("users-msg", "Mažu uživatele…");
+                try {
+                    const res = await sbAdminRpc("admin_delete_user", { p_user_id: uid });
+                    if (!res || !res.ok) {
+                        showMsg("users-msg", (res && res.error) || "Smazání uživatele selhalo.", "err");
+                        return;
+                    }
+                    showMsg("users-msg", `✓ Uživatel „${label}“ byl smazán.`, "ok");
+                    await loadDashboard();
+                } catch (err) {
+                    showMsg("users-msg", err.message || "Chyba při mazání uživatele.", "err");
+                }
+            });
+        });
+    }
+
+    // Předběžní admini, kteří se ještě neregistrovali
+    const pendingAdmins = loadedAdmins.filter((a) => !a.registered);
+    if (!pendingAdmins.length) {
+        pendingEl.innerHTML = "";
+    } else {
+        pendingEl.innerHTML = pendingAdmins.map((a) => `
+            <div class="item-row">
+                <div>
+                    <div class="item-title">${escapeHtml(a.email)}</div>
+                    <div class="item-meta">🛡️ Předběžný admin • Čeká na první přihlášení</div>
+                </div>
+                <button type="button" class="btn sm danger" data-remove-pending-admin="${escapeHtml(a.email)}">Odebrat</button>
+            </div>
+        `).join("");
+
+        pendingEl.querySelectorAll("[data-remove-pending-admin]").forEach((b) => {
+            b.addEventListener("click", () => handleRemoveAdmin(b.dataset.removePendingAdmin));
+        });
+    }
 }
 
 async function loadDashboard() {
@@ -898,7 +1019,7 @@ async function loadDashboard() {
         adminsRpcReady = true;
         renderGrantPlayerOptions();
         renderGrantSpotOptions();
-        renderAdminsSection();
+        renderUsersSection();
 
         document.getElementById("spots-list").innerHTML = loadedSpots.map((s) => `
             <div class="item-row">
@@ -943,16 +1064,17 @@ async function loadDashboard() {
     loadedAdmins = adminsRpcReady ? admins : [];
     renderGrantPlayerOptions();
     renderGrantSpotOptions();
-    renderAdminsSection();
+    renderUsersSection();
     if (!playersRpcReady) {
         showMsg("grant-msg", `Seznam hráčů se nepodařilo načíst: ${playersErr}`, "warn");
-    } else if (document.getElementById("grant-msg").classList.contains("warn")) {
-        showMsg("grant-msg", "");
-    }
-    if (!adminsRpcReady) {
-        showMsg("admins-msg", `Seznam správců se nepodařilo načíst: ${adminsErr}`, "warn");
-    } else if (document.getElementById("admins-msg").classList.contains("warn")) {
-        showMsg("admins-msg", "");
+        showMsg("users-msg", `Seznam uživatelů se nepodařilo načíst: ${playersErr}`, "warn");
+    } else {
+        if (document.getElementById("grant-msg").classList.contains("warn")) showMsg("grant-msg", "");
+        if (!adminsRpcReady) {
+            showMsg("users-msg", `Seznam adminů se nepodařilo načíst: ${adminsErr}`, "warn");
+        } else if (document.getElementById("users-msg").classList.contains("warn")) {
+            showMsg("users-msg", "");
+        }
     }
 
     const spotsEl = document.getElementById("spots-list");
@@ -1444,31 +1566,57 @@ document.getElementById("grant-claim-btn").addEventListener("click", async () =>
 
 async function handleAddAdmin(email) {
     if (localMode) {
-        showMsg("admins-msg", "Správa správců funguje až v online režimu.", "warn");
+        showMsg("users-msg", "Správa uživatelů funguje až v online režimu.", "warn");
         return;
     }
     const clean = String(email || "").trim().toLowerCase();
     if (!clean || !clean.includes("@")) {
-        showMsg("admins-msg", "Zadej platný e-mail.", "err");
+        showMsg("users-msg", "Zadej platný e-mail.", "err");
         return;
     }
-    showMsg("admins-msg", "Přidávám admin práva…");
+    showMsg("users-msg", "Uděluji admin práva…");
     try {
         const res = await sbAdminRpc("admin_add_admin", { p_email: clean });
         if (!res || !res.ok) {
-            showMsg("admins-msg", (res && res.error) || "Přidání se nepodařilo.", "err");
+            showMsg("users-msg", (res && res.error) || "Přidání se nepodařilo.", "err");
             return;
         }
         document.getElementById("admin-new-email").value = "";
-        showMsg("admins-msg", `✓ Účet „${res.email}“ má teď admin práva do Velína.`, "ok");
+        showMsg("users-msg", `✓ Účet „${res.email}“ má teď admin práva do Velína.`, "ok");
         await loadDashboard();
     } catch (err) {
-        showMsg("admins-msg", err.message || "Chyba při přidávání správce.", "err");
+        showMsg("users-msg", err.message || "Chyba při přidávání správce.", "err");
     }
 }
 
-document.getElementById("add-admin-player-btn").addEventListener("click", () => {
-    handleAddAdmin(document.getElementById("admin-pick-player").value);
+async function handleRemoveAdmin(email) {
+    const clean = String(email || "").trim().toLowerCase();
+    if (!clean) return;
+    if (!confirm(`Opravdu odebrat admin práva účtu „${clean}“?`)) return;
+    showMsg("users-msg", "Odebírám admin práva…");
+    try {
+        const res = await sbAdminRpc("admin_remove_admin", { p_email: clean });
+        if (!res || !res.ok) {
+            showMsg("users-msg", (res && res.error) || "Odebrání se nepodařilo.", "err");
+            return;
+        }
+        showMsg("users-msg", `✓ Admin práva odebrána účtu „${res.email}“.`, "ok");
+        await loadDashboard();
+    } catch (err) {
+        showMsg("users-msg", err.message || "Chyba při odebírání práv.", "err");
+    }
+}
+
+document.getElementById("users-search").addEventListener("input", renderUsersSection);
+
+document.querySelectorAll("#users-filter-tabs [data-ufilter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        usersFilter = btn.dataset.ufilter;
+        document.querySelectorAll("#users-filter-tabs [data-ufilter]").forEach((b) => {
+            b.classList.toggle("active", b === btn);
+        });
+        renderUsersSection();
+    });
 });
 
 document.getElementById("add-admin-email-btn").addEventListener("click", () => {
