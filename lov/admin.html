@@ -586,6 +586,11 @@ h2 { font-size: 1.08rem; }
                         <button type="button" class="btn primary" id="sticker-download-btn" disabled>⬇ Stáhnout nálepku</button>
                         <button type="button" class="btn" id="qr-download-btn" disabled>⬇ Jen QR kód</button>
                     </div>
+                    <div class="row2" style="width:100%;">
+                        <button type="button" class="btn" id="a4-add-btn" disabled>➕ Do A4 tisku</button>
+                        <button type="button" class="btn" id="a4-open-btn" disabled>🖨️ A4 arch (0)</button>
+                    </div>
+                    <div id="a4-queue-bar" class="is-hidden" style="width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;"></div>
                     <p class="sub" style="font-size:0.78rem;">⚠️ Nálepku nebo odkaz si hned ulož — do databáze se ukládá jen SHA-256 hash a zpětně ho nelze zobrazit.</p>
                 </div>
 
@@ -703,6 +708,9 @@ let showStickerPreview = true;
 let lastGeneratedUrl = "";
 let lastGeneratedSlug = "rozhledna";
 let lastSpotMeta = { name: "Paw Trail", elev: 0 };
+let lastBwQrDataUrl = "";
+const A4_QUEUE_KEY = "kiggs_a4_print_queue_v1";
+const A4_START_KEY = "kiggs_a4_start_pos_v1";
 let loadedSpots = [];
 let loadedPlayers = [];
 let loadedAdmins = [];
@@ -1295,10 +1303,13 @@ async function renderQr(url) {
         errorCorrectionLevel: "H",
         color: { dark: "#000000", light: "#ffffff" }
     });
+    lastBwQrDataUrl = bwCanvas.toDataURL("image/png");
     renderStickerCard(bwCanvas, lastSpotMeta.name, lastSpotMeta.elev);
 
     document.getElementById("qr-download-btn").disabled = false;
     document.getElementById("sticker-download-btn").disabled = false;
+    document.getElementById("a4-add-btn").disabled = false;
+    updateA4QueueUI();
 }
 
 /* Events */
@@ -1516,6 +1527,370 @@ document.getElementById("qr-download-btn").addEventListener("click", () => {
     link.click();
 });
 
+function loadA4Queue() {
+    try {
+        const raw = localStorage.getItem(A4_QUEUE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+}
+
+function saveA4Queue(queue) {
+    try { localStorage.setItem(A4_QUEUE_KEY, JSON.stringify(queue)); } catch {}
+}
+
+function updateA4QueueUI() {
+    const queue = loadA4Queue();
+    const openBtn = document.getElementById("a4-open-btn");
+    const bar = document.getElementById("a4-queue-bar");
+
+    openBtn.textContent = `🖨️ A4 arch (${queue.length})`;
+    openBtn.disabled = queue.length === 0 && !lastBwQrDataUrl;
+
+    if (!queue.length) {
+        bar.classList.add("is-hidden");
+        bar.innerHTML = "";
+        return;
+    }
+
+    bar.classList.remove("is-hidden");
+    bar.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:0.75rem;color:var(--muted);">
+            <span>Fronta pro A4 tisk (${queue.length} ks):</span>
+            <button type="button" class="btn sm danger" id="a4-clear-btn" style="padding:3px 8px;font-size:0.7rem;">Vyčistit</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            ${queue.map((item, idx) => `
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;background:rgba(6,13,24,0.85);border:1px solid rgba(255,255,255,0.12);font-size:0.74rem;">
+                    ${escapeHtml(item.name)}
+                    <button type="button" data-a4-rm="${idx}" style="background:none;border:0;color:#ffb4b4;cursor:pointer;font-weight:700;padding:0 2px;">✕</button>
+                </span>
+            `).join("")}
+        </div>
+    `;
+
+    bar.querySelector("#a4-clear-btn").addEventListener("click", () => {
+        saveA4Queue([]);
+        updateA4QueueUI();
+    });
+    bar.querySelectorAll("[data-a4-rm]").forEach((b) => {
+        b.addEventListener("click", () => {
+            const q = loadA4Queue();
+            q.splice(Number(b.dataset.a4Rm), 1);
+            saveA4Queue(q);
+            updateA4QueueUI();
+        });
+    });
+}
+
+window.kiggsClearA4QueueFromPopup = function () {
+    saveA4Queue([]);
+    updateA4QueueUI();
+};
+
+function openA4PrintSheet() {
+    let items = loadA4Queue();
+    if (!items.length && lastBwQrDataUrl) {
+        items = [{
+            name: lastSpotMeta.name || "Paw Trail",
+            elev: lastSpotMeta.elev || 0,
+            qr: lastBwQrDataUrl
+        }];
+    }
+    if (!items.length) return;
+
+    const win = window.open("", "_blank");
+    if (!win) {
+        alert("Povol prosím vyskakovací okna pro otevření tiskového archu A4.");
+        return;
+    }
+
+    const safeItemsJson = JSON.stringify(items).replace(/</g, "\\u003c");
+    const html = `<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Paw Trail — Tiskový arch A4 (QR štítky)</title>
+<style>
+@page { size: A4 portrait; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Inter, Arial, sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 18px;
+    gap: 16px;
+}
+.toolbar {
+    width: 210mm;
+    max-width: 100%;
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.t-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.t-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+.btn {
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    padding: 8px 13px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn.primary { background: #f2d32b; color: #0b1220; border-color: transparent; }
+.btn.green { background: #34d399; color: #052e16; border-color: transparent; }
+select {
+    background: #0f172a;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 7px 10px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+}
+.hint { font-size: 12px; color: #cbd5e1; line-height: 1.45; }
+.mini-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.mini-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 24px);
+    gap: 3px;
+    background: #0f172a;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+.mini-cell {
+    width: 24px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
+    font-size: 10px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+.mini-cell.used { background: rgba(148,163,184,0.16); color: #64748b; text-decoration: line-through; }
+.mini-cell.active { background: #f2d32b; color: #0b1220; font-weight: 700; border-color: #f2d32b; }
+
+.sheet {
+    width: 210mm;
+    height: 297mm;
+    background: #ffffff;
+    color: #000000;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, var(--cell, 35mm));
+    grid-template-rows: repeat(7, var(--cell, 35mm));
+    gap: 3mm;
+}
+.cell {
+    width: var(--cell, 35mm);
+    height: var(--cell, 35mm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.6mm;
+    overflow: hidden;
+    background: #ffffff;
+}
+.cell.filled.cutlines {
+    border: 0.25mm dashed #b0b8c4;
+}
+.cell img {
+    width: calc(var(--cell, 35mm) - 7.5mm);
+    height: calc(var(--cell, 35mm) - 7.5mm);
+    image-rendering: pixelated;
+    display: block;
+}
+.cell .lbl {
+    margin-top: 0.8mm;
+    font-size: 6.2pt;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    color: #000000;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media print {
+    body { background: #ffffff; padding: 0; display: block; }
+    .toolbar { display: none !important; }
+    .sheet { box-shadow: none; margin: 0; }
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <div class="t-row">
+        <strong>🖨️ Paw Trail — Tiskový arch A4 (5 × 7 štítků)</strong>
+        <div class="t-group">
+            <button type="button" class="btn primary" id="do-print">🖨️ Vytisknout A4</button>
+            <button type="button" class="btn green" id="mark-printed">✓ Po tisku posunout start</button>
+        </div>
+    </div>
+    <div class="mini-wrap">
+        <div>
+            <div class="hint" style="margin-bottom:4px;">Klikni na <strong>startovní políčko</strong> (šedá = už spotřebovaná místa z dřívějška):</div>
+            <div class="mini-grid" id="mini-grid"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:220px;">
+            <div class="t-group">
+                <label for="size-sel">Velikost štítku:</label>
+                <select id="size-sel">
+                    <option value="35">35 × 35 mm (pro 60×72 mm nálepku)</option>
+                    <option value="30">30 × 30 mm (pro 50×60 mm nálepku)</option>
+                </select>
+            </div>
+            <label class="t-group" style="cursor:pointer;">
+                <input type="checkbox" id="cutlines-chk" checked>
+                <span>Zobrazit jemné ořezové linky kolem QR štítků</span>
+            </label>
+            <div class="t-group">
+                <button type="button" class="btn" id="reset-pos" style="padding:5px 10px;font-size:12px;">↺ Nový čistý arch (od č. 1)</button>
+            </div>
+            <div class="hint">
+                💡 V dialogu tisku nastav <strong>Měřítko: 100 % (Skutečná velikost)</strong> a v tiskárně zvol typ papíru <strong>Štítky / Fólie / Těžký papír</strong>. Arch neobstřihuj nůžkami — nařízni nožíkem jen vrchní fólii (podklad A4 zůstane celý).
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sheet">
+    <div class="grid" id="sheet-grid"></div>
+</div>
+
+<script>
+const ITEMS = ${safeItemsJson};
+const START_KEY = "${A4_START_KEY}";
+const TOTAL = 35;
+let startPos = 0;
+try {
+    const saved = Number(localStorage.getItem(START_KEY) || 0);
+    if (!Number.isNaN(saved) && saved >= 0 && saved < TOTAL) startPos = saved;
+} catch {}
+
+function saveStart(pos) {
+    startPos = Math.max(0, Math.min(TOTAL - 1, pos));
+    try { localStorage.setItem(START_KEY, String(startPos)); } catch {}
+}
+
+function render() {
+    const size = document.getElementById("size-sel").value;
+    const cutlines = document.getElementById("cutlines-chk").checked;
+    const grid = document.getElementById("sheet-grid");
+    grid.style.setProperty("--cell", size + "mm");
+
+    const mini = document.getElementById("mini-grid");
+    mini.innerHTML = "";
+    grid.innerHTML = "";
+
+    for (let i = 0; i < TOTAL; i++) {
+        const itemIdx = i - startPos;
+        const item = (itemIdx >= 0 && itemIdx < ITEMS.length) ? ITEMS[itemIdx] : null;
+
+        const mc = document.createElement("button");
+        mc.type = "button";
+        mc.className = "mini-cell" + (i < startPos ? " used" : "") + (item ? " active" : "");
+        mc.textContent = String(i + 1);
+        mc.title = "Začít tisk od pozice " + (i + 1);
+        mc.addEventListener("click", () => { saveStart(i); render(); });
+        mini.appendChild(mc);
+
+        const cell = document.createElement("div");
+        cell.className = "cell" + (item ? (" filled" + (cutlines ? " cutlines" : "")) : "");
+        if (item) {
+            const img = document.createElement("img");
+            img.src = item.qr;
+            img.alt = item.name;
+            const lbl = document.createElement("div");
+            lbl.className = "lbl";
+            lbl.textContent = item.name;
+            cell.appendChild(img);
+            cell.appendChild(lbl);
+        }
+        grid.appendChild(cell);
+    }
+}
+
+document.getElementById("size-sel").addEventListener("change", render);
+document.getElementById("cutlines-chk").addEventListener("change", render);
+document.getElementById("reset-pos").addEventListener("click", () => { saveStart(0); render(); });
+document.getElementById("do-print").addEventListener("click", () => window.print());
+document.getElementById("mark-printed").addEventListener("click", () => {
+    const next = startPos + ITEMS.length;
+    saveStart(next >= TOTAL ? 0 : next);
+    if (window.opener && typeof window.opener.kiggsClearA4QueueFromPopup === "function") {
+        window.opener.kiggsClearA4QueueFromPopup();
+    }
+    alert(next >= TOTAL
+        ? "Arch je zaplněný — příště začneme na novém archu od pozice 1 a fronta byla vyčištěna."
+        : "Hotovo! Příští tisk automaticky začne na pozici č. " + (next + 1) + " a fronta byla vyčištěna.");
+    render();
+});
+
+render();
+<\/script>
+</body>
+</html>`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+}
+
+document.getElementById("a4-add-btn").addEventListener("click", () => {
+    if (!lastBwQrDataUrl) return;
+    const queue = loadA4Queue();
+    queue.push({
+        name: lastSpotMeta.name || "Paw Trail",
+        elev: lastSpotMeta.elev || 0,
+        qr: lastBwQrDataUrl
+    });
+    saveA4Queue(queue);
+    updateA4QueueUI();
+});
+
+document.getElementById("a4-open-btn").addEventListener("click", openA4PrintSheet);
+
 document.getElementById("copy-url-btn").addEventListener("click", async (e) => {
     if (!lastGeneratedUrl) return;
     try {
@@ -1631,6 +2006,7 @@ document.getElementById("admin-new-email").addEventListener("keydown", (e) => {
 });
 
 /* Init */
+updateA4QueueUI();
 (async () => {
     if (!IS_ONLINE) {
         showMsg("local-mode-banner", "Online databáze zatím není připojená — níže si můžeš vyzkoušet lokální testovací režim.", "warn");
