@@ -894,12 +894,19 @@ if ("serviceWorker" in navigator) {
     let teaserMessage = cfg.DEFAULT_TEASER_MESSAGE || "Paw Trail (Kiggs × Pobar) startuje už brzy 🐾";
     let toastTimer;
 
-    function applyTrailState(isOpen) {
+    function formatSpotsLabel(n) {
+        const count = Number(n) || 0;
+        if (count <= 0) return "Kiggs × Pobar • Lov rozhleden";
+        const word = count === 1 ? "rozhledna" : (count >= 2 && count <= 4 ? "rozhledny" : "rozhleden");
+        return `Kiggs × Pobar • ${count} ${word}`;
+    }
+
+    function applyTrailState(isOpen, spotsCount) {
         trailOpen = Boolean(isOpen);
         btn.classList.toggle("is-locked", !trailOpen);
         if (trailOpen) {
             btn.removeAttribute("aria-disabled");
-            sub.textContent = "Kiggs × Pobar • Lov rozhleden";
+            sub.textContent = formatSpotsLabel(spotsCount);
             icon.innerHTML = '<path d="M7 17 17 7"></path><path d="M8 7h9v9"></path>';
         } else {
             btn.setAttribute("aria-disabled", "true");
@@ -936,7 +943,7 @@ if ("serviceWorker" in navigator) {
             .then((data) => {
                 if (!data) return;
                 if (data.teaser_message) teaserMessage = data.teaser_message;
-                applyTrailState(Boolean(data.enabled));
+                applyTrailState(Boolean(data.enabled), data.spots_count);
             })
             .catch(() => {});
     } else {

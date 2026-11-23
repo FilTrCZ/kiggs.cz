@@ -603,6 +603,69 @@ body {
     0%, 100% { transform: scale(1); opacity: 0.65; }
     50% { transform: scale(1.12); opacity: 1; }
 }
+.admin-preview-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 11px 15px; border-radius: 14px;
+    background: rgba(242, 211, 43, 0.14); border: 1px solid rgba(242, 211, 43, 0.42);
+    color: #fde68a; font-size: 0.84rem; font-weight: 500;
+}
+.search-bar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.search-bar input,
+.search-bar select {
+    padding: 9px 13px; border-radius: 12px;
+    border: 1px solid var(--border); background: rgba(14, 24, 42, 0.72);
+    color: var(--text); font: inherit; font-size: 0.84rem;
+}
+.search-bar input { flex: 1; min-width: 190px; }
+.search-bar select { min-width: 165px; cursor: pointer; }
+.search-bar input:focus,
+.search-bar select:focus { outline: none; border-color: var(--accent); }
+.spot-nav-row {
+    display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px;
+}
+.spot-nav-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 9px; text-decoration: none;
+    font: inherit; font-size: 0.74rem; font-weight: 600;
+    color: var(--text); background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.11); cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.spot-nav-btn:hover { border-color: var(--border-accent); background: rgba(242, 211, 43, 0.14); }
+.spot-nav-btn.share { color: var(--accent); border-color: rgba(242, 211, 43, 0.34); background: rgba(242, 211, 43, 0.09); }
+.lb-row.is-clickable { cursor: pointer; transition: transform 0.15s ease, border-color 0.2s ease; }
+.lb-row.is-clickable:hover { border-color: var(--border-accent); transform: translateY(-1px); }
+.player-claims-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 2px; }
+.player-claim-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 12px; border-radius: 12px;
+    background: rgba(6, 13, 24, 0.65); border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.84rem;
+}
+.guide-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 13px; border-radius: 13px;
+    background: rgba(6, 13, 24, 0.62); border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.guide-num {
+    width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+    display: grid; place-items: center; font-weight: 700; font-size: 0.84rem;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border-accent);
+}
+.share-preview {
+    width: 100%; max-width: 320px; height: auto; margin: 0 auto; display: block;
+    border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+.lov-footer {
+    margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-size: 0.76rem; color: var(--muted);
+}
+.lov-footer a { color: var(--muted); text-decoration: none; }
+.lov-footer a:hover { color: var(--accent); text-decoration: underline; }
 .is-hidden { display: none !important; }
 
 @media (max-width: 720px) {
@@ -621,6 +684,7 @@ body {
         <a href="../index.html" class="back-btn">← Zpět na kiggs.cz</a>
         <div class="topbar-actions is-hidden" id="game-top-actions">
             <a href="admin.html" class="pill-btn is-hidden" id="admin-shortcut-btn" style="color:var(--accent);border-color:var(--border-accent);">⚙️ Velín</a>
+            <button type="button" class="pill-btn" id="how-to-play-btn">❓ Jak hrát</button>
             <button type="button" class="pill-btn" id="account-btn">
                 <img class="user-avatar-sm" id="account-avatar" referrerpolicy="no-referrer" alt="">
                 <span id="account-label">🔑 Přihlásit / Registrace</span>
@@ -645,6 +709,10 @@ body {
     </section>
 
     <div id="game-shell" class="is-hidden" style="display:flex;flex-direction:column;gap:18px;">
+        <div class="admin-preview-banner is-hidden" id="admin-preview-banner">
+            <span>🔒 <strong>Režim náhledu pro admina</strong> — pro veřejnost je Paw Trail momentálně zamčený.</span>
+            <a href="admin.html" class="pill-btn" style="padding:6px 12px;font-size:0.78rem;color:var(--accent);border-color:var(--border-accent);">Otevřít Velín →</a>
+        </div>
         <section class="hero">
             <div class="hero-top">
                 <div class="hero-brand">
@@ -708,6 +776,13 @@ body {
                 <button type="button" class="filter-chip" id="locate-me-btn">📍 Zobrazit vzdálenosti</button>
             </div>
 
+            <div class="search-bar">
+                <input id="spot-search" type="search" placeholder="🔍 Hledat rozhlednu nebo oblast…" autocomplete="off">
+                <select id="region-filter" aria-label="Filtr podle kraje">
+                    <option value="all">Všechny oblasti</option>
+                </select>
+            </div>
+
             <div class="spots-grid" id="spots-grid"></div>
         </section>
 
@@ -727,6 +802,11 @@ body {
                 <div class="badges-grid" id="badges-grid"></div>
             </div>
         </section>
+
+        <footer class="lov-footer">
+            <span>© 2026 Paw Trail • Kiggs × Pobar</span>
+            <a href="soukromi.html">Ochrana soukromí</a>
+        </footer>
     </div>
 </main>
 
@@ -764,10 +844,13 @@ function setStorage(key, val) {
 
 let currentUser = null;      // { id, email }
 let currentProfile = null;   // { nickname, avatar_url }
+let isCurrentUserAdmin = false;
 let localNick = getStorage(STORE_LOCAL_NICK, "");
 let spots = [];
 let leaderboard = [];
 let currentFilter = "all";
+let regionFilter = "all";
+let spotSearchQuery = "";
 let userCoords = null;
 let map = null;
 let markersById = {};
@@ -811,6 +894,7 @@ function writeLocalClaims(obj) {
 async function syncOnlineSession() {
     const adminBtn = document.getElementById("admin-shortcut-btn");
     if (!IS_ONLINE) {
+        isCurrentUserAdmin = false;
         if (adminBtn) adminBtn.classList.add("is-hidden");
         return;
     }
@@ -824,12 +908,14 @@ async function syncOnlineSession() {
         if (profRes.data && profRes.data.ok) {
             currentProfile = { nickname: profRes.data.nickname, avatar_url: profRes.data.avatar_url || null };
         }
+        isCurrentUserAdmin = Boolean(admRes.data && admRes.data.ok);
         if (adminBtn) {
-            adminBtn.classList.toggle("is-hidden", !(admRes.data && admRes.data.ok));
+            adminBtn.classList.toggle("is-hidden", !isCurrentUserAdmin);
         }
     } else {
         currentUser = null;
         currentProfile = null;
+        isCurrentUserAdmin = false;
         if (adminBtn) adminBtn.classList.add("is-hidden");
     }
     updateAccountButton();
@@ -921,6 +1007,13 @@ function initMap() {
     }).addTo(map);
 }
 
+function getMapyCzUrl(lat, lng) {
+    return `https://mapy.cz/zakladni?x=${encodeURIComponent(lng)}&y=${encodeURIComponent(lat)}&z=15&source=coor&id=${encodeURIComponent(lng)}%2C${encodeURIComponent(lat)}`;
+}
+function getGoogleMapsUrl(lat, lng) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+}
+
 function renderMapMarkers() {
     if (!map) return;
     Object.values(markersById).forEach((m) => m.remove());
@@ -942,6 +1035,10 @@ function renderMapMarkers() {
                 : `<span style="opacity:.75">🔒 Zamčeno — naskenuj nálepku na místě</span>`
             }
             ${s.ftf_nickname ? `<br><span style="color:#f2d32b">🥇 FTF: ${escapeHtml(s.ftf_nickname)}</span>` : ""}
+            <div style="display:flex;gap:8px;margin-top:7px;font-size:0.8rem;">
+                <a href="${getMapyCzUrl(s.lat, s.lng)}" target="_blank" rel="noopener noreferrer" style="color:#f2d32b;font-weight:600;text-decoration:none;">🗺️ Mapy.cz</a>
+                <a href="${getGoogleMapsUrl(s.lat, s.lng)}" target="_blank" rel="noopener noreferrer" style="color:#93c5fd;font-weight:600;text-decoration:none;">📍 Google Maps</a>
+            </div>
         `;
         markersById[s.id] = L.marker([s.lat, s.lng], { icon }).addTo(map).bindPopup(popupHtml);
         bounds.push([s.lat, s.lng]);
@@ -953,8 +1050,25 @@ function renderMapMarkers() {
     }
 }
 
+function populateRegionFilter() {
+    const sel = document.getElementById("region-filter");
+    if (!sel) return;
+    const prev = regionFilter;
+    const regions = Array.from(new Set(spots.map((s) => (s.region || "").trim()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b, "cs"));
+    sel.innerHTML = `<option value="all">Všechny oblasti (${regions.length})</option>` +
+        regions.map((r) => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+    if (prev !== "all" && regions.includes(prev)) {
+        sel.value = prev;
+    } else {
+        regionFilter = "all";
+        sel.value = "all";
+    }
+}
+
 function renderAll() {
     updateAccountButton();
+    populateRegionFilter();
     const total = spots.length;
     const foundList = spots.filter((s) => s.my_claimed);
     const foundCount = foundList.length;
@@ -977,14 +1091,27 @@ function renderAll() {
 
 function renderSpots() {
     const grid = document.getElementById("spots-grid");
-    const filtered = spots.filter((s) => {
-        if (currentFilter === "found") return s.my_claimed;
-        if (currentFilter === "missing") return !s.my_claimed;
+    const q = spotSearchQuery.trim().toLowerCase();
+    let filtered = spots.filter((s) => {
+        if (currentFilter === "found" && !s.my_claimed) return false;
+        if (currentFilter === "missing" && s.my_claimed) return false;
+        if (regionFilter !== "all" && (s.region || "").trim() !== regionFilter) return false;
+        if (q) {
+            const hay = `${s.name || ""} ${s.region || ""} ${s.hint || ""}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+        }
         return true;
     });
 
+    if (userCoords) {
+        filtered = filtered.slice().sort((a, b) => (
+            haversineMeters(userCoords.lat, userCoords.lng, a.lat, a.lng) -
+            haversineMeters(userCoords.lat, userCoords.lng, b.lat, b.lng)
+        ));
+    }
+
     if (!filtered.length) {
-        grid.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;color:var(--muted);">V tomto filtru zatím žádná rozhledna není.</div>`;
+        grid.innerHTML = `<div class="panel" style="grid-column:1/-1;text-align:center;color:var(--muted);">Tomuto filtru zatím neodpovídá žádná rozhledna.</div>`;
         return;
     }
 
@@ -1007,12 +1134,29 @@ function renderSpots() {
             <div class="spot-note">
                 ${s.my_claimed ? escapeHtml(s.secret_note || "Rozhledna odemčena!") : `💡 ${escapeHtml(s.hint || "Hledej nálepku Paw Trail přímo u rozhledny.")}`}
             </div>
+            <div class="spot-nav-row">
+                <a class="spot-nav-btn" href="${getMapyCzUrl(s.lat, s.lng)}" target="_blank" rel="noopener noreferrer" data-stop-card>🗺️ Mapy.cz</a>
+                <a class="spot-nav-btn" href="${getGoogleMapsUrl(s.lat, s.lng)}" target="_blank" rel="noopener noreferrer" data-stop-card>📍 Google Maps</a>
+                ${s.my_claimed ? `<button type="button" class="spot-nav-btn share" data-share-spot="${escapeHtml(s.id)}" data-stop-card>📤 Sdílet</button>` : ""}
+            </div>
             <div class="spot-foot">
                 <span>Nálezců celkem: ${s.finders_count || 0}</span>
                 <span>${s.my_claimed_at ? formatDate(s.my_claimed_at) : "Klikni pro zobrazení na mapě"}</span>
             </div>
         </article>`;
     }).join("");
+
+    grid.querySelectorAll("[data-stop-card]").forEach((el) => {
+        el.addEventListener("click", (e) => e.stopPropagation());
+    });
+
+    grid.querySelectorAll("[data-share-spot]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const spot = spots.find((x) => x.id === btn.dataset.shareSpot);
+            if (spot) openShareModal(spot, Boolean(spot.my_is_ftf), Boolean(spot.my_gps_verified));
+        });
+    });
 
     grid.querySelectorAll(".spot-card").forEach((card) => {
         card.addEventListener("click", () => {
@@ -1039,18 +1183,29 @@ function renderLeaderboard() {
         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
         const isMe = row.player_id === myId;
         return `
-        <div class="lb-row ${isMe ? "is-me" : ""}">
+        <div class="lb-row is-clickable ${isMe ? "is-me" : ""}" data-lb-idx="${i}" role="button" tabindex="0" title="Zobrazit zdolání hráče">
             <div class="lb-pos">${medal}</div>
             <div class="lb-user">
                 ${row.avatar_url ? `<img class="lb-avatar" src="${escapeHtml(row.avatar_url)}" referrerpolicy="no-referrer" alt="">` : ""}
                 <div style="min-width:0;">
                     <div class="lb-name">${escapeHtml(row.nickname)}${isMe ? " (ty)" : ""}</div>
-                    <div class="lb-sub">FTF: ${row.ftf_count || 0}× • Ověřeno GPS: ${row.gps_count || 0}×</div>
+                    <div class="lb-sub">FTF: ${row.ftf_count || 0}× • Ověřeno GPS: ${row.gps_count || 0}× • Klikni pro detail</div>
                 </div>
             </div>
             <div class="lb-score">${row.spots_count} 🐾</div>
         </div>`;
     }).join("");
+
+    list.querySelectorAll("[data-lb-idx]").forEach((el) => {
+        const open = () => {
+            const row = leaderboard[Number(el.dataset.lbIdx)];
+            if (row) openPlayerDetailModal(row);
+        };
+        el.addEventListener("click", open);
+        el.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+        });
+    });
 }
 
 function renderBadges(found, gps, ftf, total, elev) {
@@ -1423,6 +1578,14 @@ function openProfileModal() {
         await sb.auth.signOut();
         currentUser = null;
         currentProfile = null;
+        isCurrentUserAdmin = false;
+        const adminBtn = document.getElementById("admin-shortcut-btn");
+        if (adminBtn) adminBtn.classList.add("is-hidden");
+        const banner = document.getElementById("admin-preview-banner");
+        if (banner && !banner.classList.contains("is-hidden")) {
+            window.location.reload();
+            return;
+        }
         await loadData();
         closeModal();
     });
@@ -1539,7 +1702,14 @@ async function performClaim(rawCode, withGps) {
     modalDesc.textContent = s.secret_note || "Skvělá práce, rozhledna je zapsaná ve tvém pasu!";
     modalBody.innerHTML = "";
     setModalStatus(extras.join(" • ") || "Rozhledna zapsána do tvého účtu 🐾", "ok");
-    modalActions.innerHTML = `<button type="button" class="pill-btn primary" id="done-btn">Zobrazit na mapě</button>`;
+    modalActions.innerHTML = `
+        <button type="button" class="pill-btn primary" id="share-win-btn">📤 Sdílet úlovek</button>
+        <button type="button" class="pill-btn" id="done-btn">Zobrazit na mapě</button>
+    `;
+    document.getElementById("share-win-btn").addEventListener("click", () => {
+        const fullSpot = spots.find((x) => x.id === s.id) || s;
+        openShareModal(fullSpot, Boolean(result.is_ftf), Boolean(result.gps_verified));
+    });
     document.getElementById("done-btn").addEventListener("click", () => {
         closeModal();
         if (map && markersById[s.id]) {
@@ -1548,6 +1718,268 @@ async function performClaim(rawCode, withGps) {
             markersById[s.id].openPopup();
         }
     });
+}
+
+/* How To Play Modal */
+function openHowToPlayModal() {
+    stopQrScanner();
+    modalTitle.textContent = "❓ Jak hrát Paw Trail";
+    modalDesc.textContent = "Lov rozhleden Kiggs × Pobar — jednoduchá hra v terénu pro radost z výletů.";
+    setModalStatus("");
+    modalBody.innerHTML = `
+        <div class="guide-step">
+            <div class="guide-num">1</div>
+            <div><strong>Vyber rozhlednu z mapy</strong><br><span style="font-size:0.82rem;color:var(--muted);">Použij tlačítko Mapy.cz nebo Google Maps na kartě a vyraz na výlet. Každá rozhledna má krátkou nápovědu, kde hledat.</span></div>
+        </div>
+        <div class="guide-step">
+            <div class="guide-num">2</div>
+            <div><strong>Naskenuj naši QR nálepku</strong><br><span style="font-size:0.82rem;color:var(--muted);">Přímo u rozhledny najdi žluto-černou nálepku Paw Trail a naskenuj ji foťákem v telefonu (nebo přes tlačítko v aplikaci).</span></div>
+        </div>
+        <div class="guide-step">
+            <div class="guide-num">3</div>
+            <div><strong>Sbírej GPS odznaky &amp; FTF</strong><br><span style="font-size:0.82rem;color:var(--muted);">📍 <strong>Ověřeno GPS</strong> získáš potvrzením polohy do 300 m od rozhledny. 🥇 <strong>FTF (First To Find)</strong> patří úplně prvnímu nálezci dané rozhledny!</span></div>
+        </div>
+    `;
+    modalActions.innerHTML = `<button type="button" class="pill-btn primary" id="guide-close">Rozumím, jdu lovit 🐾</button>`;
+    document.getElementById("guide-close").addEventListener("click", closeModal);
+    backdrop.classList.add("is-open");
+}
+
+/* Player Detail Modal (from Leaderboard click) */
+async function openPlayerDetailModal(row) {
+    stopQrScanner();
+    modalTitle.textContent = `🐾 ${row.nickname}`;
+    modalDesc.textContent = `${row.spots_count} rozhleden • 🥇 FTF: ${row.ftf_count || 0}× • 📍 GPS: ${row.gps_count || 0}×`;
+    setModalStatus("");
+    modalBody.innerHTML = `<div style="text-align:center;padding:14px;color:var(--muted);font-size:0.86rem;">Načítám zdolané rozhledny…</div>`;
+    modalActions.innerHTML = `<button type="button" class="pill-btn primary" id="pl-close">Zavřít</button>`;
+    document.getElementById("pl-close").addEventListener("click", closeModal);
+    backdrop.classList.add("is-open");
+
+    let list = [];
+    try {
+        if (IS_ONLINE) {
+            const { data, error } = await sb.rpc("get_player_claims", { p_player_id: row.player_id });
+            if (error) throw error;
+            list = Array.isArray(data) ? data : [];
+        } else {
+            list = spots.filter((s) => s.my_claimed).map((s) => ({
+                spot_name: s.name,
+                region: s.region,
+                elevation: s.elevation,
+                gps_verified: s.my_gps_verified,
+                is_ftf: s.my_is_ftf,
+                claimed_at: s.my_claimed_at
+            }));
+        }
+    } catch {
+        modalBody.innerHTML = `<div style="text-align:center;padding:12px;color:var(--muted);font-size:0.84rem;">Seznam rozhleden hráče se teď nepodařilo načíst.</div>`;
+        return;
+    }
+
+    if (!list.length) {
+        modalBody.innerHTML = `<div style="text-align:center;padding:12px;color:var(--muted);font-size:0.86rem;">Tento hráč zatím nemá žádné zapsané rozhledny.</div>`;
+        return;
+    }
+
+    modalBody.innerHTML = `<div class="player-claims-list">${list.map((c) => `
+        <div class="player-claim-item">
+            <div style="min-width:0;">
+                <div style="font-weight:600;color:var(--text);">${escapeHtml(c.spot_name)}</div>
+                <div style="font-size:0.74rem;color:var(--muted);">${escapeHtml(c.region)} • ${c.elevation} m • ${formatDate(c.claimed_at)}</div>
+            </div>
+            <div style="display:flex;gap:5px;flex-shrink:0;">
+                ${c.is_ftf ? `<span class="tag gold">🥇 FTF</span>` : ""}
+                ${c.gps_verified ? `<span class="tag gps">📍 GPS</span>` : ""}
+            </div>
+        </div>
+    `).join("")}</div>`;
+}
+
+/* Shareable Trophy Card (1080x1080 PNG for IG Stories / Telegram / WhatsApp) */
+function drawShareRoundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function drawSharePaw(ctx, cx, cy, s, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + s * 0.22, s * 0.42, s * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    [[-0.44,-0.18,-0.25],[-0.16,-0.42,-0.08],[0.16,-0.42,0.08],[0.44,-0.18,0.25]].forEach(([dx, dy, rot]) => {
+        ctx.beginPath();
+        ctx.ellipse(cx + dx * s, cy + dy * s, s * 0.14, s * 0.20, rot, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.restore();
+}
+
+function renderShareCardCanvas(spot, isFtf, isGps, playerName) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1080;
+    const ctx = canvas.getContext("2d");
+    const W = 1080;
+    const H = 1080;
+
+    // Background + nocturnal glow
+    ctx.fillStyle = "#060d18";
+    ctx.fillRect(0, 0, W, H);
+    const g1 = ctx.createRadialGradient(W * 0.2, H * 0.15, 20, W * 0.2, H * 0.15, W * 0.78);
+    g1.addColorStop(0, "rgba(22, 58, 138, 0.58)");
+    g1.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, W, H);
+
+    const g2 = ctx.createRadialGradient(W * 0.85, H * 0.85, 20, W * 0.85, H * 0.85, W * 0.68);
+    g2.addColorStop(0, "rgba(242, 211, 43, 0.28)");
+    g2.addColorStop(1, "rgba(6, 13, 24, 0)");
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, W, H);
+
+    // Outer frame
+    drawShareRoundRect(ctx, 42, 42, W - 84, H - 84, 56);
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "#f2d32b";
+    ctx.stroke();
+
+    drawShareRoundRect(ctx, 62, 62, W - 124, H - 124, 44);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.stroke();
+
+    // Header
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 32px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("P A W   T R A I L   •   K I G G S   ×   P O B A R", W / 2, 136);
+
+    // Center paw emblem
+    drawSharePaw(ctx, W / 2, 295, 118, "rgba(242, 211, 43, 0.16)");
+    drawSharePaw(ctx, W / 2, 295, 76, "#f2d32b");
+
+    // ZDOLÁNO pill
+    drawShareRoundRect(ctx, W / 2 - 190, 412, 380, 62, 31);
+    ctx.fillStyle = "rgba(52, 211, 153, 0.16)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(52, 211, 153, 0.55)";
+    ctx.stroke();
+    ctx.fillStyle = "#a7f3d0";
+    ctx.font = "700 28px 'Inter', Arial, sans-serif";
+    ctx.fillText("✓  ROZHLEDNA ZDOLÁNA", W / 2, 444);
+
+    // Spot name (auto-fit)
+    const name = spot.name || "Rozhledna";
+    let fs = 68;
+    ctx.font = `700 ${fs}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    while (ctx.measureText(name).width > W - 170 && fs > 34) {
+        fs -= 2;
+        ctx.font = `700 ${fs}px 'Space Grotesk', 'Inter', Arial, sans-serif`;
+    }
+    ctx.fillStyle = "#f5f7fb";
+    ctx.fillText(name, W / 2, 558);
+
+    // Region & elevation
+    ctx.fillStyle = "rgba(226, 232, 240, 0.78)";
+    ctx.font = "500 34px 'Inter', Arial, sans-serif";
+    ctx.fillText(`${spot.region || ""}${spot.elevation ? `  •  ${spot.elevation} m n. m.` : ""}`, W / 2, 636);
+
+    // Badges row
+    const pills = [];
+    if (isFtf) pills.push({ text: "🥇 PRVNÍ NÁLEZCE (FTF)", bg: "rgba(242,211,43,0.18)", border: "rgba(242,211,43,0.65)", color: "#f2d32b" });
+    if (isGps) pills.push({ text: "📍 OVĚŘENO GPS", bg: "rgba(52,211,153,0.16)", border: "rgba(52,211,153,0.55)", color: "#a7f3d0" });
+    if (!pills.length) pills.push({ text: "🐾 PAW TRAIL ÚLOVEK", bg: "rgba(242,211,43,0.15)", border: "rgba(242,211,43,0.45)", color: "#f2d32b" });
+
+    ctx.font = "700 26px 'Inter', Arial, sans-serif";
+    const gap = 18;
+    const widths = pills.map((p) => ctx.measureText(p.text).width + 54);
+    const totalW = widths.reduce((a, b) => a + b, 0) + gap * (pills.length - 1);
+    let curX = (W - totalW) / 2;
+    pills.forEach((p, idx) => {
+        const pw = widths[idx];
+        drawShareRoundRect(ctx, curX, 706, pw, 62, 31);
+        ctx.fillStyle = p.bg;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = p.border;
+        ctx.stroke();
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, curX + pw / 2, 738);
+        curX += pw + gap;
+    });
+
+    // Player & footer URL
+    if (playerName) {
+        ctx.fillStyle = "rgba(226, 232, 240, 0.72)";
+        ctx.font = "600 30px 'Inter', Arial, sans-serif";
+        ctx.fillText(`Stopař: ${playerName}`, W / 2, 854);
+    }
+
+    ctx.fillStyle = "#f2d32b";
+    ctx.font = "700 34px 'Space Grotesk', 'Inter', Arial, sans-serif";
+    ctx.fillText("kiggs.cz/lov", W / 2, 944);
+
+    return canvas;
+}
+
+function openShareModal(spot, isFtf, isGps) {
+    stopQrScanner();
+    const playerName = (currentProfile && currentProfile.nickname) || localNick || "";
+    const canvas = renderShareCardCanvas(spot, isFtf, isGps, playerName);
+    const dataUrl = canvas.toDataURL("image/png");
+    const slug = (spot.id || "rozhledna").replace(/[^a-z0-9-]+/gi, "-");
+
+    modalTitle.textContent = "📤 Sdílet úlovek";
+    modalDesc.textContent = "Sdílej kartu rovnou do Instagram Stories, WhatsAppu nebo Telegramu!";
+    setModalStatus("");
+    modalBody.innerHTML = `<img class="share-preview" src="${dataUrl}" alt="Sdílecí karta Paw Trail">`;
+
+    const canNativeShare = Boolean(navigator.share && navigator.canShare);
+    modalActions.innerHTML = `
+        ${canNativeShare ? `<button type="button" class="pill-btn primary" id="btn-native-share">📤 Sdílet (Stories / Chat)</button>` : ""}
+        <button type="button" class="pill-btn ${canNativeShare ? "" : "primary"}" id="btn-download-share">⬇ Stáhnout obrázek PNG</button>
+        <button type="button" class="pill-btn" id="btn-close-share" style="opacity:.7">Zavřít</button>
+    `;
+
+    const nativeBtn = document.getElementById("btn-native-share");
+    if (nativeBtn) {
+        nativeBtn.addEventListener("click", async () => {
+            try {
+                const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+                const file = new File([blob], `pawtrail-${slug}.png`, { type: "image/png" });
+                const shareData = {
+                    title: `Paw Trail — ${spot.name}`,
+                    text: `Zdolal jsem ${spot.name} (${spot.elevation} m) v Paw Trail (Kiggs × Pobar)! 🐾 https://kiggs.cz/lov/`,
+                    files: [file]
+                };
+                if (navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                    return;
+                }
+            } catch (err) {
+                if (err && err.name === "AbortError") return;
+            }
+            setModalStatus("Přímé sdílení obrázku tento prohlížeč nepodporuje — klikni na Stáhnout obrázek PNG.", "warn");
+        });
+    }
+
+    document.getElementById("btn-download-share").addEventListener("click", () => {
+        const a = document.createElement("a");
+        a.download = `pawtrail-${slug}.png`;
+        a.href = dataUrl;
+        a.click();
+    });
+    document.getElementById("btn-close-share").addEventListener("click", closeModal);
+    backdrop.classList.add("is-open");
 }
 
 function openClaimModal(prefilledCode) {
@@ -1603,6 +2035,15 @@ function openClaimModal(prefilledCode) {
 /* UI events */
 document.getElementById("open-scan-btn").addEventListener("click", () => openClaimModal(""));
 document.getElementById("account-btn").addEventListener("click", openProfileModal);
+document.getElementById("how-to-play-btn").addEventListener("click", openHowToPlayModal);
+document.getElementById("spot-search").addEventListener("input", (e) => {
+    spotSearchQuery = e.currentTarget.value || "";
+    renderSpots();
+});
+document.getElementById("region-filter").addEventListener("change", (e) => {
+    regionFilter = e.currentTarget.value || "all";
+    renderSpots();
+});
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1676,13 +2117,18 @@ if (IS_ONLINE && sb) {
     const loader = document.getElementById("boot-loader");
     if (loader) loader.classList.add("is-hidden");
 
-    if (!isEnabled) {
+    if (!isEnabled && !isCurrentUserAdmin) {
         document.getElementById("game-shell").classList.add("is-hidden");
         document.getElementById("game-top-actions").classList.add("is-hidden");
         document.getElementById("locked-message").textContent = teaserText;
         document.getElementById("locked-screen").classList.add("is-active");
         if (recoveryPending) openPasswordResetModal();
         return;
+    }
+
+    const previewBanner = document.getElementById("admin-preview-banner");
+    if (previewBanner) {
+        previewBanner.classList.toggle("is-hidden", isEnabled || !isCurrentUserAdmin);
     }
 
     document.getElementById("game-shell").classList.remove("is-hidden");
