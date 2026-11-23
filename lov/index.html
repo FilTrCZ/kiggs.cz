@@ -592,6 +592,17 @@ body {
 .locked-screen h1 { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.65rem; }
 .locked-screen h1 span { color: var(--accent); }
 .locked-screen p { font-size: 0.92rem; line-height: 1.55; color: var(--muted); }
+.boot-loader {
+    margin: 56px auto; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    color: var(--muted); font-size: 0.88rem;
+}
+.boot-paw {
+    font-size: 2rem; animation: pawPulse 1.2s ease-in-out infinite;
+}
+@keyframes pawPulse {
+    0%, 100% { transform: scale(1); opacity: 0.65; }
+    50% { transform: scale(1.12); opacity: 1; }
+}
 .is-hidden { display: none !important; }
 
 @media (max-width: 720px) {
@@ -608,14 +619,20 @@ body {
 <main class="wrap">
     <div class="topbar">
         <a href="../index.html" class="back-btn">← Zpět na kiggs.cz</a>
-        <div class="topbar-actions" id="game-top-actions">
+        <div class="topbar-actions is-hidden" id="game-top-actions">
             <a href="admin.html" class="pill-btn is-hidden" id="admin-shortcut-btn" style="color:var(--accent);border-color:var(--border-accent);">⚙️ Velín</a>
             <button type="button" class="pill-btn" id="account-btn">
                 <img class="user-avatar-sm" id="account-avatar" referrerpolicy="no-referrer" alt="">
-                <span id="account-label">Přihlásit se</span>
+                <span id="account-label">🔑 Přihlásit / Registrace</span>
             </button>
             <button type="button" class="pill-btn primary" id="open-scan-btn">📷 Naskenovat / Zadat kód</button>
         </div>
+    </div>
+
+    <!-- INITIAL LOADING STATE (prevents flash before lock check completes) -->
+    <div class="boot-loader" id="boot-loader" aria-live="polite">
+        <div class="boot-paw" aria-hidden="true">🐾</div>
+        <span>Načítám Paw Trail…</span>
     </div>
 
     <!-- LOCKED TEASER SCREEN -->
@@ -627,7 +644,7 @@ body {
         <a href="../index.html" class="pill-btn primary" style="margin-top:6px;">← Zpět na kiggs.cz</a>
     </section>
 
-    <div id="game-shell" style="display:flex;flex-direction:column;gap:18px;">
+    <div id="game-shell" class="is-hidden" style="display:flex;flex-direction:column;gap:18px;">
         <section class="hero">
             <div class="hero-top">
                 <div class="hero-brand">
@@ -836,7 +853,7 @@ function updateAccountButton() {
         label.textContent = currentProfile.nickname;
     } else {
         avatar.style.display = "none";
-        label.textContent = "🔑 Přihlásit se";
+        label.textContent = "🔑 Přihlásit / Registrace";
     }
 }
 
@@ -1097,19 +1114,60 @@ function requestGpsCoords() {
     });
 }
 
-/* Auth Modal (Google Sign-In + Email/Password) */
+/* Auth Modal (Google Sign-In + Email/Password + Password Reset) */
 function openAuthModal(pendingCode) {
     stopQrScanner();
     if (pendingCode) {
         try { sessionStorage.setItem(PENDING_CODE_KEY, pendingCode); } catch {}
     }
 
-    let isRegister = false;
-    modalTitle.textContent = pendingCode ? "🐾 Přihlas se pro uložení rozhledny" : "Přihlášení do Paw Trail";
-    modalDesc.textContent = "Tvůj postup se synchronizuje mezi mobilem i PC a nemusíš pokaždé vyplňovat přezdívku.";
+    let authMode = "login"; // "login" | "register" | "reset"
     setModalStatus("");
 
     function renderAuthBody() {
+        const isRegister = authMode === "register";
+        const isReset = authMode === "reset";
+
+        if (isReset) {
+            modalTitle.textContent = "🔑 Obnovení hesla";
+            modalDesc.textContent = "Zadej e-mail svého účtu a pošleme ti bezpečný odkaz pro nastavení nového hesla.";
+            modalBody.innerHTML = `
+                <div class="field"><label for="auth-email">E-mail účtu</label><input id="auth-email" type="email" autocomplete="username" placeholder="tvuj@email.cz"></div>
+            `;
+            modalActions.innerHTML = `
+                <button type="button" class="pill-btn primary" id="btn-reset-send">Odeslat odkaz na e-mail</button>
+                <button type="button" class="pill-btn" id="btn-back-login">← Zpět na přihlášení</button>
+                <button type="button" class="pill-btn" id="btn-auth-close" style="opacity:.7">Zavřít</button>
+            `;
+            document.getElementById("btn-back-login").addEventListener("click", () => {
+                authMode = "login";
+                setModalStatus("");
+                renderAuthBody();
+            });
+            document.getElementById("btn-reset-send").addEventListener("click", async () => {
+                const email = document.getElementById("auth-email").value.trim();
+                if (!email || !email.includes("@")) {
+                    setModalStatus("Zadej prosím platný e-mail.", "error");
+                    return;
+                }
+                setModalStatus("Odesílám odkaz pro obnovení hesla…");
+                const redirectTo = window.location.origin + window.location.pathname;
+                const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+                if (error) {
+                    setModalStatus(error.message || "Odeslání odkazu selhalo.", "error");
+                    return;
+                }
+                setModalStatus("✓ Odkaz pro změnu hesla byl odeslán na tvůj e-mail (mrkni případně i do spamu).", "ok");
+            });
+            document.getElementById("btn-auth-close").addEventListener("click", closeModal);
+            return;
+        }
+
+        modalTitle.textContent = pendingCode
+            ? "🐾 Přihlas se pro uložení rozhledny"
+            : (isRegister ? "Registrace do Paw Trail" : "Přihlášení / Registrace");
+        modalDesc.textContent = "Tvůj postup se synchronizuje mezi mobilem i PC a nemusíš pokaždé vyplňovat přezdívku.";
+
         modalBody.innerHTML = `
             <button type="button" class="pill-btn google" id="btn-google-oauth" style="padding:12px 16px;border-radius:13px;">
                 ${GOOGLE_SVG} Pokračovat přes Google
@@ -1122,6 +1180,7 @@ function openAuthModal(pendingCode) {
         modalActions.innerHTML = `
             <button type="button" class="pill-btn primary" id="btn-email-submit">${isRegister ? "Vytvořit účet" : "Přihlásit se e-mailem"}</button>
             <button type="button" class="pill-btn" id="btn-switch-mode">${isRegister ? "Už účet mám — přihlásit se" : "Nemám účet — registrovat se"}</button>
+            ${!isRegister ? `<button type="button" class="pill-btn" id="btn-forgot-pass" style="opacity:.85;font-size:0.8rem;">Zapomenuté heslo?</button>` : ""}
             <button type="button" class="pill-btn" id="btn-auth-close" style="opacity:.7">Zavřít</button>
         `;
 
@@ -1132,10 +1191,19 @@ function openAuthModal(pendingCode) {
         });
 
         document.getElementById("btn-switch-mode").addEventListener("click", () => {
-            isRegister = !isRegister;
+            authMode = isRegister ? "login" : "register";
             setModalStatus("");
             renderAuthBody();
         });
+
+        const forgotBtn = document.getElementById("btn-forgot-pass");
+        if (forgotBtn) {
+            forgotBtn.addEventListener("click", () => {
+                authMode = "reset";
+                setModalStatus("");
+                renderAuthBody();
+            });
+        }
 
         document.getElementById("btn-email-submit").addEventListener("click", async () => {
             const email = document.getElementById("auth-email").value.trim();
@@ -1180,6 +1248,51 @@ function openAuthModal(pendingCode) {
     }
 
     renderAuthBody();
+    backdrop.classList.add("is-open");
+}
+
+function openPasswordResetModal() {
+    stopQrScanner();
+    modalTitle.textContent = "🔐 Nastavit nové heslo";
+    modalDesc.textContent = "Zadej nové heslo ke svému účtu Paw Trail (alespoň 6 znaků).";
+    setModalStatus("");
+    modalBody.innerHTML = `
+        <div class="field"><label for="new-pass-1">Nové heslo</label><input id="new-pass-1" type="password" autocomplete="new-password" placeholder="alespoň 6 znaků"></div>
+        <div class="field"><label for="new-pass-2">Potvrzení nového hesla</label><input id="new-pass-2" type="password" autocomplete="new-password" placeholder="zopakuj heslo"></div>
+    `;
+    modalActions.innerHTML = `
+        <button type="button" class="pill-btn primary" id="btn-save-new-pass">Uložit nové heslo</button>
+        <button type="button" class="pill-btn" id="btn-close-new-pass" style="opacity:.7">Zavřít</button>
+    `;
+
+    document.getElementById("btn-save-new-pass").addEventListener("click", async () => {
+        const p1 = document.getElementById("new-pass-1").value;
+        const p2 = document.getElementById("new-pass-2").value;
+        if (p1.length < 6) {
+            setModalStatus("Heslo musí mít alespoň 6 znaků.", "error");
+            return;
+        }
+        if (p1 !== p2) {
+            setModalStatus("Hesla se neshodují.", "error");
+            return;
+        }
+        setModalStatus("Ukládám nové heslo…");
+        const { error } = await sb.auth.updateUser({ password: p1 });
+        if (error) {
+            setModalStatus(error.message || "Nepodařilo se uložit nové heslo.", "error");
+            return;
+        }
+        try {
+            if (window.location.hash) window.history.replaceState({}, "", window.location.pathname + window.location.search);
+        } catch {}
+        setModalStatus("✓ Nové heslo je uloženo a jsi přihlášený!", "ok");
+        await syncOnlineSession();
+        if (!document.getElementById("game-shell").classList.contains("is-hidden")) {
+            await loadData();
+        }
+        setTimeout(() => closeModal(), 1200);
+    });
+    document.getElementById("btn-close-new-pass").addEventListener("click", closeModal);
     backdrop.classList.add("is-open");
 }
 
@@ -1526,6 +1639,21 @@ document.getElementById("locate-me-btn").addEventListener("click", async (e) => 
 });
 
 /* Boot */
+let recoveryPending = false;
+if (IS_ONLINE && sb) {
+    try {
+        if ((window.location.hash || "").includes("type=recovery")) {
+            recoveryPending = true;
+        }
+    } catch {}
+    sb.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+            recoveryPending = true;
+            openPasswordResetModal();
+        }
+    });
+}
+
 (async () => {
     let isEnabled = Boolean(CFG.DEFAULT_TRAIL_ENABLED);
     let teaserText = CFG.DEFAULT_TEASER_MESSAGE || "Paw Trail (Kiggs × Pobar) startuje už brzy 🐾";
@@ -1545,16 +1673,28 @@ document.getElementById("locate-me-btn").addEventListener("click", async (e) => 
         if (localTeaser) teaserText = localTeaser;
     }
 
+    const loader = document.getElementById("boot-loader");
+    if (loader) loader.classList.add("is-hidden");
+
     if (!isEnabled) {
         document.getElementById("game-shell").classList.add("is-hidden");
         document.getElementById("game-top-actions").classList.add("is-hidden");
         document.getElementById("locked-message").textContent = teaserText;
         document.getElementById("locked-screen").classList.add("is-active");
+        if (recoveryPending) openPasswordResetModal();
         return;
     }
 
+    document.getElementById("game-shell").classList.remove("is-hidden");
+    document.getElementById("game-top-actions").classList.remove("is-hidden");
     initMap();
     await loadData();
+    if (map) setTimeout(() => map.invalidateSize(), 80);
+
+    if (recoveryPending) {
+        openPasswordResetModal();
+        return;
+    }
 
     const params = new URLSearchParams(window.location.search);
     let scannedCode = params.get("k");

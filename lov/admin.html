@@ -879,6 +879,10 @@ function renderUsersSection() {
                 ? `<button type="button" class="btn sm" data-user-clearphoto="${escapeHtml(u.user_id)}" data-user-nick="${escapeHtml(nick)}">🖼️ Smazat foto</button>`
                 : "";
 
+            const resetPassBtn = u.email
+                ? `<button type="button" class="btn sm" data-user-resetpass="${escapeHtml(u.email)}" data-user-nick="${escapeHtml(nick)}">🔑 Reset hesla</button>`
+                : "";
+
             const deleteBtn = (!u.is_me && !u.is_admin)
                 ? `<button type="button" class="btn sm danger" data-user-delete="${escapeHtml(u.user_id)}" data-user-label="${escapeHtml(nick + (u.email ? ` (${u.email})` : ""))}">Smazat</button>`
                 : "";
@@ -898,6 +902,7 @@ function renderUsersSection() {
                     <div class="action-row">
                         <button type="button" class="btn sm" data-user-grant="${escapeHtml(u.user_id)}">🏅 + Rozhledna</button>
                         <button type="button" class="btn sm" data-user-rename="${escapeHtml(u.user_id)}" data-user-nick="${escapeHtml(nick)}">✏️ Přezdívka</button>
+                        ${resetPassBtn}
                         ${clearPhotoBtn}
                         ${adminBtn}
                         ${deleteBtn}
@@ -937,6 +942,26 @@ function renderUsersSection() {
                     await loadDashboard();
                 } catch (err) {
                     showMsg("users-msg", err.message || "Chyba při změně přezdívky.", "err");
+                }
+            });
+        });
+
+        listEl.querySelectorAll("[data-user-resetpass]").forEach((b) => {
+            b.addEventListener("click", async () => {
+                const email = b.dataset.userResetpass;
+                const nick = b.dataset.userNick || email;
+                if (!confirm(`Odeslat uživateli „${nick}“ (${email}) e-mail s bezpečným odkazem pro nastavení nového hesla?`)) return;
+                showMsg("users-msg", `Odesílám odkaz pro reset hesla na ${email}…`);
+                try {
+                    const redirectTo = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
+                    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+                    if (error) {
+                        showMsg("users-msg", error.message || "Odeslání e-mailu selhalo.", "err");
+                        return;
+                    }
+                    showMsg("users-msg", `✓ E-mail s odkazem pro nastavení nového hesla byl odeslán na „${email}“.`, "ok");
+                } catch (err) {
+                    showMsg("users-msg", err.message || "Chyba při odesílání odkazu.", "err");
                 }
             });
         });
