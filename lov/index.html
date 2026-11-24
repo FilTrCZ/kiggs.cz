@@ -1636,10 +1636,32 @@ async function startCameraQr(codeInputEl) {
     }
 }
 
+/* Normalize manual code or pasted QR URL (accepts "K7M4-X9P2-R8TQ", "k7m4 x9p2 r8tq", or "https://kiggs.cz/lov/?k=...") */
+function normalizeClaimCode(raw) {
+    let val = String(raw || "").trim();
+    if (!val) return "";
+    // Extract ?k=... if user pasted a full or partial URL
+    if (/[?&]k=/i.test(val) || /^https?:\/\//i.test(val)) {
+        try {
+            const parsed = new URL(/^https?:\/\//i.test(val) ? val : `https://${val}`);
+            const kParam = parsed.searchParams.get("k");
+            if (kParam) val = kParam.trim();
+        } catch {
+            const m = val.match(/[?&]k=([^&#\s]+)/i);
+            if (m && m[1]) val = decodeURIComponent(m[1]).trim();
+        }
+    }
+    const lowerNoSpaces = val.replace(/\s+/g, "").toLowerCase();
+    const compact = lowerNoSpaces.replace(/-/g, "");
+    // Real sticker codes are 12 alphanumeric chars (printed as XXXX-XXXX-XXXX)
+    if (/^[a-z0-9]{12}$/.test(compact)) return compact;
+    return lowerNoSpaces;
+}
+
 /* Claim flow */
 async function performClaim(rawCode, withGps) {
-    const cleanCode = (rawCode || "").trim();
-    if (!cleanCode) { setModalStatus("Zadej tajný kód z nálepky.", "error"); return; }
+    const cleanCode = normalizeClaimCode(rawCode);
+    if (!cleanCode) { setModalStatus("Zadej záložní kód z nálepky nebo vlož odkaz z QR.", "error"); return; }
 
     if (IS_ONLINE && !currentUser) {
         openAuthModal(cleanCode);
@@ -1737,7 +1759,7 @@ function openHowToPlayModal() {
         </div>
         <div class="guide-step">
             <div class="guide-num">2</div>
-            <div><strong>Naskenuj naši QR nálepku</strong><br><span style="font-size:0.82rem;color:var(--muted);">Přímo u rozhledny najdi žluto-černou nálepku Paw Trail a naskenuj ji foťákem v telefonu (nebo přes tlačítko v aplikaci).</span></div>
+            <div><strong>Naskenuj QR nálepku (nebo opiš kód)</strong><br><span style="font-size:0.82rem;color:var(--muted);">Přímo u rozhledny najdi žluto-černou nálepku Paw Trail a naskenuj QR foťákem v telefonu. Pokud foťák QR nepřečte, stačí ručně opsat 12místný záložní kód vytištěný pod QR kódem.</span></div>
         </div>
         <div class="guide-step">
             <div class="guide-num">3</div>
@@ -2003,11 +2025,11 @@ function openClaimModal(prefilledCode) {
         modalBody.innerHTML = "";
     } else {
         modalTitle.textContent = "Odemknout rozhlednu";
-        modalDesc.textContent = `Přihlášen jako „${activeName}“. Naskenuj QR kód z nálepky nebo zadej kód ručně.`;
+        modalDesc.textContent = `Přihlášen jako „${activeName}“. Nejsnadnější je naskenovat QR nálepku foťákem telefonu — nebo sem opiš 12místný kód zpod QR (případně vlož celý QR odkaz).`;
         modalBody.innerHTML = `
             <div class="field">
-                <label for="claim-code">Tajný kód z nálepky</label>
-                <input id="claim-code" type="text" maxlength="64" placeholder="kód z QR nálepky" autocomplete="off">
+                <label for="claim-code">Záložní kód z nálepky (nebo QR odkaz)</label>
+                <input id="claim-code" type="text" maxlength="160" placeholder="např. K7M4-X9P2-R8TQ" autocomplete="off">
             </div>
             ${!IS_ONLINE ? `<div class="demo-codes">
                 <button type="button" class="demo-chip" data-demo="kiggs-babi-demo1">Demo: Babí lom</button>

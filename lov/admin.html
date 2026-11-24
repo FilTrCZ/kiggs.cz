@@ -706,9 +706,16 @@ let trailEnabled = false;
 let darkQrStyle = false;
 let showStickerPreview = true;
 let lastGeneratedUrl = "";
+let lastGeneratedCode = "";
 let lastGeneratedSlug = "rozhledna";
 let lastSpotMeta = { name: "Paw Trail", elev: 0 };
 let lastBwQrDataUrl = "";
+
+function formatHumanCode(code) {
+    const clean = String(code || "").trim().toUpperCase();
+    if (!clean) return "";
+    return clean.length === 12 ? `${clean.slice(0, 4)}-${clean.slice(4, 8)}-${clean.slice(8, 12)}` : clean;
+}
 const A4_QUEUE_KEY = "kiggs_a4_print_queue_v1";
 const A4_START_KEY = "kiggs_a4_start_pos_v1";
 let loadedSpots = [];
@@ -1270,11 +1277,20 @@ function renderStickerCard(qrCanvas, spotName, elev) {
     ctx.fillStyle = "#ffffff";
     ctx.fill();
 
-    // QR kód dovnitř boxu s bezpečnou tichou zónou
-    const qrPad = 36;
+    // QR kód dovnitř boxu s bezpečnou tichou zónou (+ záložní kód dole v bílém rámečku)
+    const humanCode = formatHumanCode(lastGeneratedCode);
+    const qrPadTop = humanCode ? 26 : 36;
+    const qrDrawSize = humanCode ? boxSize - 88 : boxSize - 72;
+    const qrDrawX = boxX + (boxSize - qrDrawSize) / 2;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(qrCanvas, boxX + qrPad, boxY + qrPad, boxSize - qrPad * 2, boxSize - qrPad * 2);
+    ctx.drawImage(qrCanvas, qrDrawX, boxY + qrPadTop, qrDrawSize, qrDrawSize);
     ctx.imageSmoothingEnabled = true;
+
+    if (humanCode) {
+        ctx.fillStyle = "#111827";
+        ctx.font = "700 26px ui-monospace, 'Cascadia Mono', Consolas, monospace";
+        ctx.fillText(`KÓD: ${humanCode}`, W / 2, boxY + boxSize - 30);
+    }
 
     // 5. Patička: výzva k naskenování + název rozhledny + web
     drawRoundRect(ctx, 140, 938, W - 280, 62, 31);
@@ -1500,20 +1516,22 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
     }
 
     let codeHash = null;
+    let generatedCode = "";
     let generatedUrl = "";
     if (shouldGenerateCode) {
-        const secretCode = randomSecretCode();
-        codeHash = await window.kiggsSha256(secretCode);
+        generatedCode = randomSecretCode();
+        codeHash = await window.kiggsSha256(generatedCode);
         const base = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
-        generatedUrl = `${base}?k=${secretCode}`;
+        generatedUrl = `${base}?k=${generatedCode}`;
     }
 
     const revealGeneratedQr = async () => {
         if (!shouldGenerateCode || !generatedUrl) return;
         lastGeneratedUrl = generatedUrl;
+        lastGeneratedCode = generatedCode;
         lastGeneratedSlug = id;
         lastSpotMeta = { name, elev };
-        document.getElementById("out-url").textContent = generatedUrl;
+        document.getElementById("out-url").textContent = `${generatedUrl}\nZáložní kód: ${formatHumanCode(generatedCode)}`;
         await renderQr(generatedUrl);
     };
 
@@ -1642,6 +1660,7 @@ function openA4PrintSheet() {
         items = [{
             name: lastSpotMeta.name || "Paw Trail",
             elev: lastSpotMeta.elev || 0,
+            code: lastGeneratedCode || "",
             qr: lastBwQrDataUrl
         }];
     }
@@ -1787,17 +1806,33 @@ select {
     image-rendering: pixelated;
     display: block;
 }
+.cell.with-code img {
+    width: calc(var(--cell, 35mm) - 9.4mm);
+    height: calc(var(--cell, 35mm) - 9.4mm);
+}
 .cell .lbl {
-    margin-top: 0.8mm;
-    font-size: 6.2pt;
+    margin-top: 0.6mm;
+    font-size: 6pt;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 1.08;
     text-align: center;
     color: #000000;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.cell .code {
+    margin-top: 0.35mm;
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 5.5pt;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.05;
+    text-align: center;
+    color: #111827;
+    max-width: 100%;
+    white-space: nowrap;
 }
 @media print {
     body { background: #ffffff; padding: 0; display: block; }
@@ -1832,6 +1867,10 @@ select {
                 <input type="checkbox" id="cutlines-chk" checked>
                 <span>Zobrazit jemné ořezové linky kolem QR štítků</span>
             </label>
+            <label class="t-group" style="cursor:pointer;">
+                <input type="checkbox" id="showcode-chk" checked>
+                <span>Tisknout pod QR i záložní textový kód (pro ruční zadání)</span>
+            </label>
             <div class="t-group">
                 <button type="button" class="btn" id="reset-pos" style="padding:5px 10px;font-size:12px;">↺ Nový čistý arch (od č. 1)</button>
             </div>
@@ -1862,9 +1901,16 @@ function saveStart(pos) {
     try { localStorage.setItem(START_KEY, String(startPos)); } catch {}
 }
 
+function formatCode(raw) {
+    const c = String(raw || "").trim().toUpperCase();
+    if (!c) return "";
+    return c.length === 12 ? c.slice(0, 4) + "-" + c.slice(4, 8) + "-" + c.slice(8, 12) : c;
+}
+
 function render() {
     const size = document.getElementById("size-sel").value;
     const cutlines = document.getElementById("cutlines-chk").checked;
+    const showCode = document.getElementById("showcode-chk").checked;
     const grid = document.getElementById("sheet-grid");
     grid.style.setProperty("--cell", size + "mm");
 
@@ -1896,7 +1942,8 @@ function render() {
         mini.appendChild(mc);
 
         const cell = document.createElement("div");
-        cell.className = "cell" + (item ? (" filled" + (cutlines ? " cutlines" : "")) : "");
+        const formattedCode = (item && showCode && item.code) ? formatCode(item.code) : "";
+        cell.className = "cell" + (item ? (" filled" + (cutlines ? " cutlines" : "") + (formattedCode ? " with-code" : "")) : "");
         if (item) {
             const img = document.createElement("img");
             img.src = item.qr;
@@ -1906,6 +1953,12 @@ function render() {
             lbl.textContent = item.name;
             cell.appendChild(img);
             cell.appendChild(lbl);
+            if (formattedCode) {
+                const codeEl = document.createElement("div");
+                codeEl.className = "code";
+                codeEl.textContent = formattedCode;
+                cell.appendChild(codeEl);
+            }
         }
         grid.appendChild(cell);
     }
@@ -1913,6 +1966,7 @@ function render() {
 
 document.getElementById("size-sel").addEventListener("change", render);
 document.getElementById("cutlines-chk").addEventListener("change", render);
+document.getElementById("showcode-chk").addEventListener("change", render);
 document.getElementById("reset-pos").addEventListener("click", () => { saveStart(0); render(); });
 document.getElementById("do-print").addEventListener("click", () => window.print());
 document.getElementById("mark-printed").addEventListener("click", () => {
@@ -1951,6 +2005,7 @@ document.getElementById("a4-add-btn").addEventListener("click", () => {
     queue.push({
         name: lastSpotMeta.name || "Paw Trail",
         elev: lastSpotMeta.elev || 0,
+        code: lastGeneratedCode || "",
         qr: lastBwQrDataUrl
     });
     saveA4Queue(queue);
