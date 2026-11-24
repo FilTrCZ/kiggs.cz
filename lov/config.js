@@ -8,7 +8,7 @@
  *
  * 2) Online režim (dálkové spuštění z administrace + žebříček + FTF):
  *    - Založ zdarma projekt na https://supabase.com
- *    - Vytvoř admin účet v Authentication -> Users a vypni veřejnou registraci
+ *    - Nech zapnutou registraci pro hráče (admin přístup řídí tabulka public.admin_users)
  *    - V SQL Editoru spusť lov/supabase-setup.sql (a přidej svůj e-mail do admin_users)
  *    - Vyplň níže SUPABASE_URL a SUPABASE_ANON_KEY (Project Settings -> API)
  */

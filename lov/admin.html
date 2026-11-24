@@ -1485,23 +1485,40 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
 
     const isEditing = Boolean(editingSpotId);
     const shouldGenerateCode = !isEditing || document.getElementById("f-rotate-code").checked;
-    const id = isEditing ? editingSpotId : slugify(name);
+    let id = isEditing ? editingSpotId : slugify(name);
+
+    if (!isEditing && loadedSpots.some((s) => s.id === id)) {
+        const proceed = confirm(
+            `Rozhledna s podobným názvem (${id}) už v seznamu existuje.\n\n` +
+            `Klikni OK, pokud chceš vytvořit NOVOU samostatnou rozhlednu s unikátním ID.\n` +
+            `(Pro úpravu existující rozhledny klikni na Zrušit a použij tlačítko ✏️ Upravit v seznamu níže.)`
+        );
+        if (!proceed) return;
+        let suffix = 2;
+        while (loadedSpots.some((s) => s.id === `${id}-${suffix}`)) suffix += 1;
+        id = `${id}-${suffix}`;
+    }
 
     let codeHash = null;
+    let generatedUrl = "";
     if (shouldGenerateCode) {
         const secretCode = randomSecretCode();
         codeHash = await window.kiggsSha256(secretCode);
         const base = (CFG.SITE_URL || "https://kiggs.cz/lov/").replace(/\?.*$/, "");
-        const fullUrl = `${base}?k=${secretCode}`;
-
-        lastGeneratedUrl = fullUrl;
-        lastGeneratedSlug = id;
-        lastSpotMeta = { name, elev };
-        document.getElementById("out-url").textContent = fullUrl;
-        await renderQr(fullUrl);
+        generatedUrl = `${base}?k=${secretCode}`;
     }
 
+    const revealGeneratedQr = async () => {
+        if (!shouldGenerateCode || !generatedUrl) return;
+        lastGeneratedUrl = generatedUrl;
+        lastGeneratedSlug = id;
+        lastSpotMeta = { name, elev };
+        document.getElementById("out-url").textContent = generatedUrl;
+        await renderQr(generatedUrl);
+    };
+
     if (localMode) {
+        await revealGeneratedQr();
         showMsg("spot-msg", `Vygenerován QR kód pro „${name}“ (lokální režim — na server se uloží až po připojení databáze).`, "warn");
         return;
     }
@@ -1512,6 +1529,7 @@ document.getElementById("create-spot-btn").addEventListener("click", async () =>
             p_id: id, p_name: name, p_region: region, p_elevation: elev,
             p_lat: lat, p_lng: lng, p_hint: hint, p_secret_note: note, p_code_hash: codeHash
         });
+        await revealGeneratedQr();
         const okText = isEditing
             ? (shouldGenerateCode
                 ? `✓ Rozhledna „${name}“ upravena a byl vygenerován NOVÝ QR kód (stáhni novou nálepku)!`
@@ -1608,8 +1626,13 @@ function updateA4QueueUI() {
     });
 }
 
-window.kiggsClearA4QueueFromPopup = function () {
-    saveA4Queue([]);
+window.kiggsClearA4QueueFromPopup = function (printedCount) {
+    const q = loadA4Queue();
+    if (typeof printedCount === "number" && printedCount > 0 && printedCount < q.length) {
+        saveA4Queue(q.slice(printedCount));
+    } else {
+        saveA4Queue([]);
+    }
     updateA4QueueUI();
 };
 
@@ -1812,6 +1835,7 @@ select {
             <div class="t-group">
                 <button type="button" class="btn" id="reset-pos" style="padding:5px 10px;font-size:12px;">↺ Nový čistý arch (od č. 1)</button>
             </div>
+            <div class="hint" id="overflow-warn" style="display:none;color:#fde68a;font-weight:600;"></div>
             <div class="hint">
                 💡 V dialogu tisku nastav <strong>Měřítko: 100 % (Skutečná velikost)</strong> a v tiskárně zvol typ papíru <strong>Štítky / Fólie / Těžký papír</strong>. Arch neobstřihuj nůžkami — nařízni nožíkem jen vrchní fólii (podklad A4 zůstane celý).
             </div>
@@ -1824,7 +1848,7 @@ select {
 </div>
 
 <script>
-const ITEMS = ${safeItemsJson};
+let ITEMS = ${safeItemsJson};
 const START_KEY = "${A4_START_KEY}";
 const TOTAL = 35;
 let startPos = 0;
@@ -1843,6 +1867,17 @@ function render() {
     const cutlines = document.getElementById("cutlines-chk").checked;
     const grid = document.getElementById("sheet-grid");
     grid.style.setProperty("--cell", size + "mm");
+
+    const warnEl = document.getElementById("overflow-warn");
+    const capacity = TOTAL - startPos;
+    const overflow = Math.max(0, ITEMS.length - capacity);
+    if (overflow > 0) {
+        warnEl.style.display = "block";
+        warnEl.textContent = "⚠️ Na tento arch se od pozice " + (startPos + 1) + " vejde jen " + capacity + " z " + ITEMS.length + " štítků. Zbylých " + overflow + " zůstane ve frontě pro další arch.";
+    } else {
+        warnEl.style.display = "none";
+        warnEl.textContent = "";
+    }
 
     const mini = document.getElementById("mini-grid");
     mini.innerHTML = "";
@@ -1881,14 +1916,22 @@ document.getElementById("cutlines-chk").addEventListener("change", render);
 document.getElementById("reset-pos").addEventListener("click", () => { saveStart(0); render(); });
 document.getElementById("do-print").addEventListener("click", () => window.print());
 document.getElementById("mark-printed").addEventListener("click", () => {
-    const next = startPos + ITEMS.length;
+    const printed = Math.min(ITEMS.length, TOTAL - startPos);
+    if (printed <= 0) return;
+    const next = startPos + printed;
+    const remaining = ITEMS.length - printed;
+    ITEMS = ITEMS.slice(printed);
     saveStart(next >= TOTAL ? 0 : next);
     if (window.opener && typeof window.opener.kiggsClearA4QueueFromPopup === "function") {
-        window.opener.kiggsClearA4QueueFromPopup();
+        window.opener.kiggsClearA4QueueFromPopup(printed);
     }
-    alert(next >= TOTAL
-        ? "Arch je zaplněný — příště začneme na novém archu od pozice 1 a fronta byla vyčištěna."
-        : "Hotovo! Příští tisk automaticky začne na pozici č. " + (next + 1) + " a fronta byla vyčištěna.");
+    if (remaining > 0) {
+        alert("Vytištěno " + printed + " štítků, arch je zaplněný. Zbylých " + remaining + " štítků zůstalo připravených na nový arch od pozice 1.");
+    } else {
+        alert(next >= TOTAL
+            ? "Arch je zaplněný — příště začneme na novém archu od pozice 1 a fronta byla vyčištěna."
+            : "Hotovo! Příští tisk automaticky začne na pozici č. " + (next + 1) + " a fronta byla vyčištěna.");
+    }
     render();
 });
 

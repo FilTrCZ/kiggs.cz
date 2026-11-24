@@ -571,6 +571,7 @@ body {
 .status-msg.is-visible { display: block; }
 .status-msg.is-error { background: rgba(255, 107, 107, 0.14); color: #ffb4b4; border: 1px solid rgba(255, 107, 107, 0.3); }
 .status-msg.is-ok { background: var(--green-soft); color: #a7f3d0; border: 1px solid rgba(52, 211, 153, 0.35); }
+.status-msg.is-warn { background: rgba(242, 211, 43, 0.12); color: #fde68a; border: 1px solid rgba(242, 211, 43, 0.32); }
 
 .qr-video { width: 100%; border-radius: 14px; background: #000; display: none; max-height: 240px; object-fit: cover; }
 .qr-video.is-active { display: block; }
@@ -1257,6 +1258,9 @@ function closeModal() {
 }
 
 backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && backdrop.classList.contains("is-open")) closeModal();
+});
 
 function requestGpsCoords() {
     return new Promise((resolve) => {
@@ -2015,10 +2019,11 @@ function openClaimModal(prefilledCode) {
         });
     }
 
+    const hasQrDetector = "BarcodeDetector" in window;
     modalActions.innerHTML = `
         <button type="button" class="pill-btn primary" id="btn-claim-gps">📍 Odemknout + Ověřit GPS</button>
         <button type="button" class="pill-btn" id="btn-claim-plain">Odemknout bez GPS</button>
-        ${!prefilledCode ? `<button type="button" class="pill-btn" id="btn-open-cam">📷 Skenovat QR kamerou</button>` : ""}
+        ${!prefilledCode && hasQrDetector ? `<button type="button" class="pill-btn" id="btn-open-cam">📷 Skenovat QR kamerou</button>` : ""}
         <button type="button" class="pill-btn" id="btn-close-modal" style="opacity:.7">Zavřít</button>
     `;
 
